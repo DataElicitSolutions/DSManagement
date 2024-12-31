@@ -1,0 +1,23 @@
+.success_msg {
+    color: green;
+}
+
+.error_msg {
+    color: red;
+}
+
+#button {
+    background-color: #4CAF50;  
+    color: white;
+    border: none;
+    border-radius: 10px; 
+    padding: 10px 20px;   
+    text-align: center;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#button:hover {
+    background-color: #45a049;  
+}

@@ -1,0 +1,15 @@
+001_regn_tar_TTLSWDPR80144,None -  ready
+regn_radit_windows_registry_script_inputs,None - Ready
+regn_all_windows-UF_inputs,None - ready
+ngxp_regn_all_windows-details-UF_inputs,None - Ready
+regn_all_WinEvtOpsTaskScheduler_inputs,None -  Ready
+regn_all_windows_setup_inputs,None - Ready 
+regn_all_sites_uf_outputs,None -  Ready
+
+
+
+001_regn_tar_TTLSWDPR80144
+regn_all_linux_UF_inputs
+regn_all_tar_uf_outputs
+splunk_ingest_actions
+Splunk_TA_nix

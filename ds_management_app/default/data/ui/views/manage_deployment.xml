@@ -1,0 +1,88 @@
+<dashboard version="1.1" script="dsm_manage_deployment.js" stylesheet="dsm_manage_deployment.css">
+  <label>Manage Deployment Server</label>
+  <row>
+    <panel>
+      <html>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px;">
+            <!-- Right Side Dropdown with Button -->
+            <div>
+                <select id="dropdown" style="height: 35px; width: 320px; margin: 0px; border: 1px solid #ccc; border-radius: 5px;">
+                     <option value="">Loading...</option>
+                </select>
+                <button id="modifyButton" style="background-color: blue; margin-left: 8px; width: 130px; color: white; padding: 10px 15px; border: none; border-radius: 5px;">Modify</button>
+                <button id="removeServerclass" style="background-color: #ee1515; color: white; margin-left: 8px; padding: 10px 10px; width: 150px; border: none; border-radius: 5px;">Remove Serverclass</button>
+            </div>
+            
+            <!-- Left Side Buttons -->
+            <div>
+                <button id="addServerclass" style="background-color: green; color: white; padding: 10px 10px; border: none; border-radius: 5px; width: 150px;">Add Serverclass</button>
+            </div>
+        </div>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+    <html>
+    <body>
+      <div class="tabs">
+          <button class="tab" id="tab1" data-tab="content1">Add Apps</button>
+          <button class="tab" id="tab2" data-tab="content2">Add Client</button>
+      </div>       
+    </body>
+    </html>
+    </panel>
+  </row>
+<row>
+    <panel depends="$add_app$">
+    <html>
+    <body>
+      <!-- Tab Content (Add Apps) -->
+      <div class="content active" id="content1">
+          <h3>Select Apps</h3>
+          <select id="appDropdown">
+              <option value="">Select an App</option>
+          </select>
+          <button id="addApp">Add</button>
+          <button id="removeApp">Remove</button>
+
+          <h3>Selected Apps</h3>
+          <table id="selectedAppsTable">
+              <thead>
+                  <tr>
+                      <th>App Name</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  <!-- Rows will be dynamically added here -->
+              </tbody>
+          </table>
+      </div>
+    </body>
+    </html>
+    </panel>
+  </row>
+<row>
+    <panel depends="$add_client$">
+    <html>
+    <body>
+      <!-- Tab Content (Add Client) -->
+      <div class="content active" id="content2">
+          <h3>Machine Type Filter</h3>
+          <select id="machineTypeDropdown">
+              <option value="">Select Machine Type</option>
+              <option value="Linux">Linux</option>
+              <option value="Windows">Windows</option>
+          </select>
+
+          <h3>Text Area 1</h3>
+          <textarea id="textarea1"></textarea>
+
+          <h3>Text Area 2</h3>
+          <textarea id="textarea2"></textarea>
+      </div>
+    </body>
+    </html>
+    </panel>
+  </row>
+</dashboard>

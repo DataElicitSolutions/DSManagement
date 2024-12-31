@@ -1,0 +1,330 @@
+/* General Tab Styling */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #ccc;
+  cursor: pointer;
+}
+
+.tab {
+  padding: 10px 20px;
+  border: 1px solid #ccc;
+  border-bottom: none;
+  margin-right: 5px;
+  background-color: #f9f9f9;
+  color: black;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.tab:hover {
+  background-color: #007bff;
+  color: white;
+}
+
+.tab.active {
+  background-color: #007bff;
+  color: white;
+}
+
+/* Content Styling */
+.content {
+  display: none;
+  padding: 20px;
+  border: 1px solid #ccc;
+}
+
+.content.active {
+  display: block;
+}
+
+.horizontal-container {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+/* Text Area Styling */
+textarea {
+  width: 100%;
+  height: 100px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-top: 10px;
+}
+
+label {
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* Advanced Options Styling */
+.advanced-options {
+    display: none; /* Hidden by default */
+    margin-top: 10px;
+    
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.advanced-options label {
+    font-size: 14px;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+.advanced-options input {
+    width: 100%;
+    padding: 5px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#whitelistToggle {
+    margin-bottom: 5px;
+}
+#blacklistToggle {
+    margin-bottom: 5px;
+}
+
+/* Dropdown Styling */
+select {
+  width: 300px;
+  height: 35px;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+/* Multi-select specific styling */
+select[multiple] {
+  height: 100px; /* Adjust height for better visibility */
+  resize: none;
+}
+
+/* Button Styling */
+button {
+  padding: 10px 20px;
+  margin-left: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+#addApp {
+  background-color: green;
+  color: white;
+}
+
+#removeApp {
+  background-color: #ee1515;
+  color: white;
+}
+
+#modifyButton {
+  background-color: blue;
+  margin-left: 8px;
+  width: 130px;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+}
+
+#removeServerclass {
+  background-color: #ee1515;
+  margin-left: 8px;
+  width: 150px;
+  color: white;
+  padding: 10px 10px;
+  border: none;
+  border-radius: 5px;
+}
+
+#addServerclass {
+  background-color: green;
+  color: white;
+  padding: 10px 10px;
+  border: none;
+  border-radius: 5px;
+  width: 150px;
+}
+
+#addApp {
+  background-color: green;
+  color: white;
+  padding: 10px 10px;
+  border: none;
+  border-radius: 5px;
+  width: 100px;
+}
+
+#removeApp {
+  background-color: #ee1515;
+  color: white;
+  padding: 10px 10px;
+  border: none;
+  border-radius: 5px;
+  width: 100px;
+}
+
+.removeAppBtn {
+  background-color: #ff4d4d; /* Light red background */
+  color: white; /* White "x" */
+  border: none; /* Remove default border */
+  width: 24px; /* Fixed width for the circular button */
+  height: 24px; /* Fixed height for the circular button */
+  border-radius: 50%; /* Make the button circular */
+  cursor: pointer; /* Change cursor to pointer on hover */
+  font-size: 16px; /* Set size for the "x" */
+  line-height: 24px; /* Center the "x" vertically */
+  text-align: center; /* Center the "x" horizontally */
+  padding: 0; /* Remove default padding */
+  transition: background-color 0.3s ease; /* Smooth transition on hover */
+}
+
+.removeAppBtn:hover {
+  background-color: #e60000; /* Darker red on hover */
+}
+
+.removeAppBtn:active {
+  background-color: #cc0000; /* Even darker red when clicked */
+  transform: scale(0.95); /* Slightly shrink button on click */
+}
+
+#dropdown {
+  height: 35px;
+  width: 320px;
+  margin: 0px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+#appDropdown {
+  height: 35px;
+  width: 320px;
+  margin: 0px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+/* Table Styling */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+table,
+th,
+td {
+  border: 1px solid #ccc;
+  text-align: left;
+  padding: 10px;
+}
+
+th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+td {
+  background-color: #fff;
+}
+
+/* Loader JS */
+/* Overlay */
+/* Overlay to cover the screen */
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Gray with opacity */
+    z-index: 998; /* Ensure it is on top */
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+}
+
+/* Wrapper to stack loader and message */
+#content-wrapper {
+    display: flex;
+    flex-direction: column; /* Stack loader and message vertically */
+    justify-content: center; /* Center vertically inside wrapper */
+    align-items: center; /* Center horizontally inside wrapper */
+}
+
+/* Loader */
+#loader {
+    border: 8px solid #f3f3f3; /* Light grey */
+    border-top: 8px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite; /* Enable spinning animation */
+}
+
+/* Status Message */
+#status_message {
+    margin-top: 15px; /* Space between loader and message */
+    font-size: 16px;
+    text-align: center;
+    color: blue;
+    z-index: 999; /* Ensure it is on top */
+}
+
+/* Loader Animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+
+
+/* Sumnit button CSS */
+/* Adjust container to remove spacing */
+.button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: auto; /* Remove fixed height */
+    margin: 0; /* Remove margin */
+    padding: 0; /* Remove padding */
+    background-color: transparent; /* Optional, match the background */
+  }
+  
+  /* Styling the button */
+  .simple-button {
+    background-color: blue;
+    color: white;
+    border: none;
+    width: 200px;
+    border-radius: 12px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .simple-button:hover {
+    background-color: rgb(102, 163, 5);
+  }
+  

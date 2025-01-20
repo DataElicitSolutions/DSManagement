@@ -1,0 +1,54 @@
+name: Create Release & Tag and upload tgz to it
+
+on:
+  # Triggers the workflow on push or pull request events but only for the 'main' branch
+  # push:
+  #   branches: [ 'release' ]
+
+  workflow_dispatch:
+
+jobs:
+  zip-and-upload:
+    permissions: write-all
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.10'
+      
+      - name: started creating binary
+        run: cd ds_addon_code && chmod +x binary.sh  && ./binary.sh
+
+      - name: Create TAR of app
+        run: tar --exclude=".git*" --exclude="local*" --exclude=".DS_Store*" --exclude="*pyc*" --exclude="._*" -cvzf ds_management_app.tgz ds_management_app
+
+      - name: Get Release Version
+        run: |
+          echo "version=$(head -n 1 release_version.txt)"  >> $GITHUB_ENV
+
+      - name: Create GitHub Release
+        id: create_release  # Save the output of this step for later use
+        uses: actions/create-release@v1
+        with:
+          tag_name: 'v${{ env.version }}'  # Replace with your desired release tag
+          release_name: 'Release v${{ env.version }}'  # Replace with your desired release name
+          draft: false  # Set to true if you want a draft release
+          prerelease: false  # Set to true if it"s a pre-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub-provided token for authentication
+
+          # Step 4: Upload an Asset to the Release
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}  # Use the upload URL from the previous step
+          asset_path: ./ds_management_app.tgz  # Path to the file to upload
+          asset_name: ds_management_app_${{ env.version }}.tgz  # Name of the asset in the release
+          asset_content_type: application/gzip  # MIME type of the asset

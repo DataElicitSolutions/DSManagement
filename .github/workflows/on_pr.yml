@@ -1,0 +1,39 @@
+name: Creating Package to validate the changes before release.
+
+on:
+  # Triggers the workflow on push or pull request events but only for the 'main' branch
+  pull_request:
+    branches: [ 'main' ]
+
+  workflow_dispatch:
+
+jobs:
+  zip-and-upload:
+    permissions: write-all
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.10'
+      
+      - name: started creating binary
+        run: cd ds_addon_code && chmod +x binary.sh  && ./binary.sh
+
+      - name: Copy Add-on to app
+        run: mkdir -p getdiag/data/getdiag_addon && cp -R getdiag_addon getdiag/data/
+
+      - name: Create TAR of app
+        run: tar --exclude=".git*" --exclude="local*" --exclude=".DS_Store*" --exclude="*pyc*" --exclude="._*" -cvzf ds_management_app.tgz ds_management_app
+
+      - name: "Upload the tgz package as artifact"
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: "ds_management_app.tgz"
+          path: ds_management_app.tgz
+          compression-level: 0

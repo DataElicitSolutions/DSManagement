@@ -1,4 +1,0 @@
-regn_all_windows_factorytalk_UF_inputs,None
-regn_all_windows_test-UF_inputs,None
-regn_all_rhn_uf_outputs,None
-regn_all_deploymentclient,None

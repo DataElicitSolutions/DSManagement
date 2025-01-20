@@ -1,0 +1,40 @@
+<dashboard version="1.1" script="dsm_configuration.js" stylesheet="dsm_configuration.css">
+  <label>Configuration</label>
+
+  <row>
+    <panel>
+      <html>
+      <body>
+        <div id="overlay" style="display: none;">
+            <div id="content-wrapper">
+                <div id="loader"></div> <!-- Loader -->
+                <div id="status_message"></div> <!-- Status message -->
+            </div>
+        </div>
+          <div class="config-container">
+              <h1>Configuration Page</h1>
+              <hr></hr><p></p>
+                  <div class="form-group">
+                      <label for="dsURL"><b>Enter Deployment server IP</b></label>
+                      <input type="text" id="dsURL" placeholder="https://ds.mycompany:8089 OR https://192.168.0.1:8089"/>
+                  </div>
+                  <div class="form-group">
+                      <label for="repoLocation"><b>Destination Repository Location</b></label>
+                      <input type="text" id="repoLocation" placeholder="$SPLUNK_HOME/etc/deployment-apps"/>
+                  </div>
+                  <div class="form-group">
+                      <label for="phonehome"><b>PhoneHome Interval In Secs</b></label>
+                      <input type="text" id="phonehome" placeholder="Enter integer value in secound" value="60"/>
+                  </div>
+                  <div class="form-group">
+                      <label for="pullDelay"><b>Freeze Pull (skip pull after successful app update)</b></label>
+                      <input type="text" id="pullDelay" placeholder="Enter integer value in secound" value="300"/>
+                  </div>
+                  <button type="submit" id="submit">Save</button>
+                  <div id="status_message" style="margin-top: 10px;"></div>
+          </div>
+      </body>
+      </html>
+    </panel>
+  </row>
+</dashboard>

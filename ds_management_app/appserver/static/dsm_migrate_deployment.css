@@ -1,0 +1,146 @@
+.migration-container {
+    font-family: Arial, sans-serif;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    width: 60%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+code {
+    padding: 2px 4px;
+    color: #d14;
+    background-color: #f7f7f9;
+    border: 1px solid #e1e1e8;
+    white-space: nowrap;
+    font-size: 15px;
+}
+strong,p  {
+    font-size: 15px;
+}
+
+.migration-container h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 30px;
+}
+
+.checkbox-group {
+    margin-bottom: 40px;
+
+}
+
+.checkbox-group label {
+    font-size: 18px;
+    display: block;
+
+}
+
+.source-destination {
+    margin-left: 20px;
+    font-size: 14px;
+    color: #555;
+    margin-top: 10px;
+}
+
+
+.source-destination,
+#serverclass-box {
+    margin-top: 10px;
+    border: 2px dashed #0073e6;
+    padding-top: 10px;
+    padding-left: 10px;
+    border-radius: 5px;
+    background-color: #eef7ff;
+    color: #333;
+}
+
+.submit-button {
+    width: 100%;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: #0073e6;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+.submit-button:hover {
+    background-color:  #6a11cb;
+}
+
+.override-box {
+    margin-top: 10px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+#overrideServerclass, #migrateApps, #migrateServerclass {
+    margin-bottom: 6px;
+}
+ 
+/* Hide dashboard title */
+.dashboard-header-title{
+    display: none;
+}
+
+.dashboard-body {
+    padding: 0 0px 0px; 
+    background-color: #f2f4f5;
+    min-height: 500px;
+}
+
+.dashboard-header {
+    display: none;
+}
+
+/* Loader JS */
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Gray with opacity */
+    z-index: 998; /* Ensure it is on top */
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+}
+
+/* Wrapper to stack loader and message */
+#content-wrapper {
+    display: flex;
+    flex-direction: column; /* Stack loader and message vertically */
+    justify-content: center; /* Center vertically inside wrapper */
+    align-items: center; /* Center horizontally inside wrapper */
+}
+
+/* Loader */
+#loader {
+    border: 8px solid #f3f3f3; /* Light grey */
+    border-top: 8px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite; /* Enable spinning animation */
+}
+
+/* Status Message */
+#status_message {
+    margin-top: 15px; /* Space between loader and message */
+    font-size: 16px;
+    text-align: center;
+    color: blue;
+    z-index: 999; /* Ensure it is on top */
+}
+
+/* Loader Animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

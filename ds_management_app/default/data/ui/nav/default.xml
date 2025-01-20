@@ -1,5 +1,6 @@
 <nav search_view="search" color="#464646">
-	<view name="home" default='true'/>
-	<view name="manage_deployment"/>
-	<view name="reload_deployment"/>
+	<view name="manage_deployment" default='true'/>
+	<view name="deployment_client_info"/>
+	<view name="configuration"/>
+	<view name="migrate_deployment"/>
 </nav>

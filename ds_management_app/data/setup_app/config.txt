@@ -1,2 +1,0 @@
-dsIP="3.110.77.157"
-appName="linux_dc_app"

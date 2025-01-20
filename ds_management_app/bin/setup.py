@@ -1,53 +1,78 @@
-import os, shutil,re, csv, hashlib, tarfile
+import os, shutil,re, csv, hashlib, tarfile, configparser,time
 from splunk.clilib.bundle_paths import make_splunkhome_path
 import splunk.appserver.mrsparkle.lib.util as splunk_lib_util
 from ds_utils import log, create_machine_types_filter_file
 from extract_csv_parms import extrace_csv
+import splunk.appserver.mrsparkle.lib.util as splunk_lib_util
 
+
+#General Path
+checkpoint_dir = splunk_lib_util.make_splunkhome_path(["var", "run", "ds_management_app", "checkpoint"])
+ds_conf_path = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_management_app', 'local', 'ds.conf'])
+reload_time_txt = splunk_lib_util.make_splunkhome_path(["var", "run", "ds_management_app", "checkpoint","reload_time.txt"])
+   
 # Define source and destination directories for copy_apps
-src_dir = splunk_lib_util.make_splunkhome_path(["etc", "deployment-apps"])
-dst_dir = splunk_lib_util.make_splunkhome_path(["etc", "apps", "ds_management_app", "data", "ds_app"])
-checkpoint_dir = splunk_lib_util.make_splunkhome_path(["etc", "apps", "ds_management_app", "data", "checkpoint"])
+# src_repository_location = splunk_lib_util.make_splunkhome_path(["etc", "deployment-apps"])   ### TO DO : Make this path dynamic from btool
+# dst_repository_location = splunk_lib_util.make_splunkhome_path(["etc", "deployment-apps"])  ### TO DO : Make this path dynamic from conf file
+checkpoint_copy_ds_app = os.path.join(checkpoint_dir, "checkpoint_copy_ds_app.txt")
 
 # Define paths for converting .conf to .csv
-conf_file = splunk_lib_util.make_splunkhome_path(["etc", "system", "local", "serverclass.conf"])
-csv_file = splunk_lib_util.make_splunkhome_path(["etc", "apps", "ds_management_app", "lookups","serverclass.csv"])
+serverclass_conf_file = splunk_lib_util.make_splunkhome_path(["etc", "system", "local", "serverclass.conf"])
+serverclass_csv_file = splunk_lib_util.make_splunkhome_path(["etc", "apps", "ds_management_app", "lookups","serverclass.csv"])
+checkpoint_serverclass_conversion = os.path.join(checkpoint_dir,"checkpoint_serverclass_conversion.txt")
 
 # Define source and destination directories for set_app_checkpoint
-ds_app_dir = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_management_app', 'data', 'ds_app'])
-output_dir = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_management_app', 'appserver', 'static','apps'])
-checkpoint_csv = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_management_app', 'lookups', 'app_checkpoint.csv'])
+apps_tgz_path = splunk_lib_util.make_splunkhome_path(['etc', 'system','static', 'ds_management_app','apps'])
+checkpoint_csv = splunk_lib_util.make_splunkhome_path(['var', 'run', 'ds_management_app', 'lookups', 'app_checkpoint.csv'])
+checkpoint_each_app = os.path.join(checkpoint_dir, "checkpoint_each_app.txt")
 
 # Define source and destination directories for push_script
 ds_setup_app_dir = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_management_app', 'data', 'setup_app'])
-deployment_app_dir = splunk_lib_util.make_splunkhome_path(['etc', 'deployment-apps'])
 
 # Function to copy deployment-apps to ds_app
-def copy_apps():
-    checkpoint_copy_ds_app = splunk_lib_util.make_splunkhome_path(["etc", "apps", "ds_management_app", "data", "checkpoint", "checkpoint_copy_ds_app.txt"])
+def copy_apps(override=False):
+    paths = read_ds_config()
+    src_repository_location = paths['source_repositoryLocation']
+    dst_repository_location = paths['dest_repositoryLocation']
+    
+    if(src_repository_location==dst_repository_location):
+        log("INFO", "Source and destination locations are the same. Aborting.")
+        return
+    
     if os.path.isfile(checkpoint_copy_ds_app):
         log("INFO","Deployment apps is already copied")
         return
-    # Ensure destination directory exists
-    os.makedirs(dst_dir, exist_ok=True)
+    
+    # Handle override logic
+    if override=="true":
+        log("INFO", "Override is True. Clearing destination directory.")
+        # Remove the destination directory and recreate it
+        if os.path.exists(dst_repository_location):
+            shutil.rmtree(dst_repository_location)
+        os.makedirs(dst_repository_location, exist_ok=True)
+    else:
+        # Ensure the destination directory exists
+        os.makedirs(dst_repository_location, exist_ok=True)
+
     os.makedirs(checkpoint_dir, exist_ok=True)
 
     # Copy all contents from src_dir to dst_dir
     try:
-        for item in os.listdir(src_dir):
-            s = os.path.join(src_dir, item)
-            d = os.path.join(dst_dir, item)
+        for item in os.listdir(src_repository_location):
+            s = os.path.join(src_repository_location, item)
+            d = os.path.join(dst_repository_location, item)
             if os.path.isdir(s):
-                # If it's a directory, copy the directory only if it doesn't already exist in the destination
-                if not os.path.exists(d):
+                # If it's a directory, copy the directory only if override is False and it doesn't already exist
+                if not os.path.exists(d) or override=="true":
                     shutil.copytree(s, d)
                 else:
-                    # If the directory already exists, copy files individually
+                    # If the directory exists, copy files individually
                     for sub_item in os.listdir(s):
                         sub_s = os.path.join(s, sub_item)
                         sub_d = os.path.join(d, sub_item)
                         if os.path.isdir(sub_s):
-                            shutil.copytree(sub_s, sub_d)
+                            if not os.path.exists(sub_d) or override=="true":
+                                shutil.copytree(sub_s, sub_d)
                         else:
                             shutil.copy2(sub_s, sub_d)
             else:
@@ -56,19 +81,55 @@ def copy_apps():
         log("INFO","Deployment apps copied successfully.")
         with open(checkpoint_copy_ds_app, 'w') as fp:
             log("INFO","Checkpoint added for Deployment apps")
-            pass
+            
     except Exception as e:
         log("ERROR",f"Error copying Deployment apps: {e}")
+        
+        
+def read_ds_config():
+    try:
+        # Check if the file exists
+        if not os.path.exists(ds_conf_path):
+            return {"error": f"Configuration file not found at {ds_conf_path}"}
 
+        # Read the configuration file
+        config = configparser.ConfigParser()
+        config.read(ds_conf_path)
+
+        # Check if 'general' section exists
+        if 'general' not in config:
+            return {"error": "Missing [general] section in the configuration file"}
+
+        # Extract values
+        source_repo = config['general'].get('source_repositoryLocation', None)
+        dest_repo = config['general'].get('dest_repositoryLocation', None)
+
+        if source_repo is None or dest_repo is None:
+            return {"error": "Required keys missing in [general] section"}
+
+        # Return the values
+        return {
+            "source_repositoryLocation": source_repo,
+            "dest_repositoryLocation": dest_repo
+        }
+
+    except Exception as e:
+        return {"error": f"An error occurred while reading the configuration: {str(e)}"}
 
 # Function to convert .conf file to .csv
-def convert_conf_to_csv():
-    checkpoint_serverclass_conversion = splunk_lib_util.make_splunkhome_path(["etc", "apps", "ds_management_app", "data", "checkpoint", "checkpoint_serverclass_conversion.txt"])
+def convert_conf_to_csv(override):
     if os.path.isfile(checkpoint_serverclass_conversion):
         log("INFO","Serverclass is already copied")
         return
-    
-    os.makedirs(os.path.dirname(csv_file), exist_ok=True) 
+    file_mode='a'
+    if override=="true":
+        log("INFO", "Override is True. Removing existing serverclass CSV.")
+        file_mode='w'
+        if os.path.isfile(serverclass_csv_file):
+            os.remove(serverclass_csv_file)
+
+    os.makedirs(os.path.dirname(serverclass_csv_file), exist_ok=True) 
+    os.makedirs(checkpoint_dir, exist_ok=True)
     # Code to convert .conf file to .csv
     # Initialize data list to hold parsed content
     data = []
@@ -80,7 +141,7 @@ def convert_conf_to_csv():
 
     # Attempt to read and parse the .conf file
     try:
-        with open(conf_file, 'r') as file:
+        with open(serverclass_conf_file, 'r') as file:
             serverclass = None
             app = '-'
             for line in file:
@@ -114,10 +175,14 @@ def convert_conf_to_csv():
                             key=host_match.group(1)
                     data.append([serverclass, app, key, value])
 
+        # Append or write data to the CSV file
+        write_header = override=="true" or not os.path.isfile(serverclass_csv_file)
+        
         # Write the parsed data to CSV
-        with open(csv_file, 'w', newline='') as file:
+        with open(serverclass_csv_file, file_mode, newline='') as file:
             writer = csv.writer(file)
-            writer.writerow(['Serverclass', 'App', 'Key', 'Value'])  # CSV header
+            if write_header:
+                writer.writerow(['Serverclass', 'App', 'Key', 'Value'])  # CSV header
             writer.writerows(data)
             
         # After create csv from conf file need below steps.
@@ -126,8 +191,8 @@ def convert_conf_to_csv():
         
         log("INFO", "Conversion of serverclass.conf to serverclass.csv completed successfully.")
         with open(checkpoint_serverclass_conversion, 'w') as fp:
-            log("INFO","Checkpoint added for Serverclass")
-            pass
+            log("INFO","Checkpoint added for Serverclass conversion")
+            
     except Exception as e:
         log("ERROR", f"Error converting .conf file to CSV: {e}")
         
@@ -153,22 +218,64 @@ def calculate_file_checksum(file_path):
             hash_md5.update(chunk)
     return hash_md5.hexdigest()
       
+def get_reload_time():
+    try:
+        # Read the epoch time from the file
+        with open(reload_time_txt, "r") as file:
+            epoch_time = int(file.read().strip())  # Convert the string to an integer
+        return epoch_time
+    except FileNotFoundError:
+        log("INFO",f"Error: File {reload_time_txt} not found.")
+        return 0
+    except ValueError:
+        log("INFO",f"Error: Invalid content in {reload_time_txt}. Cannot convert to integer.")
+        return 0
+
+def set_reload_time():
+    current_epoch_time = int(time.time())
+    
+    # Write the epoch time to the file
+    with open(reload_time_txt, "w") as file:
+        file.write(str(current_epoch_time))
+    
+def is_folder_or_files_modified_after_last_reload(folder_path,reload_time):
+
+    for root, dirs, files in os.walk(folder_path):
+        # Check the folder itself
+        if reload_time - os.path.getmtime(root) < 0:
+            return True
+        
+        # Check all files in the folder
+        for file_name in files:
+            file_path = os.path.join(root, file_name)
+            if reload_time - os.path.getmtime(file_path) < 0 :
+                return True
+    
+    return False
+
 # Function to compress all directory in ds_apps and move tgz to ~/var/run. 
 # Also Update checkpoint.csv
 def compress_app_update_checkpoint():
+    reload_time = get_reload_time()
+    set_reload_time()
+    paths = read_ds_config()
+    dst_repository_location = paths['dest_repositoryLocation']
     # Initialize list to store checkpoint data for CSV
-    os.makedirs(output_dir, exist_ok=True)  # Ensure output directory exists
+    os.makedirs(apps_tgz_path, exist_ok=True)  # Ensure output directory exists
     os.makedirs(os.path.dirname(checkpoint_csv), exist_ok=True) 
-    
+    os.makedirs(checkpoint_dir, exist_ok=True)
     checkpoint_data = []
-    
     # Process each directory in ds_app
-    for app_dir in os.listdir(ds_app_dir):
-        full_app_dir = os.path.join(ds_app_dir, app_dir)
+    for app_dir in os.listdir(dst_repository_location):
+        full_app_dir = os.path.join(dst_repository_location, app_dir)
         if os.path.isdir(full_app_dir):  # Ensure it's a directory
-            
+            tarball_path = os.path.join(apps_tgz_path, f"{app_dir}.tgz")
+            if not is_folder_or_files_modified_after_last_reload(full_app_dir,reload_time):
+                checksum = calculate_file_checksum(tarball_path)
+                checkpoint_data.append([app_dir, checksum])
+                continue
+
             # Compress the directory into a .tgz file
-            tarball_path = os.path.join(output_dir, f"{app_dir}.tgz")
             with tarfile.open(tarball_path, "w:gz") as tar:
                 tar.add(full_app_dir, arcname=app_dir)
             log("INFO",f"Processed and compressed {app_dir} successfully.")
@@ -184,13 +291,13 @@ def compress_app_update_checkpoint():
         writer = csv.writer(csvfile)
         writer.writerow(['app_name', 'checkpoint'])  # Write header
         writer.writerows(checkpoint_data)  # Write checkpoint data
-        
+    log("INFO", "compressed app and updated checkpoint.")
+    
 def set_app_checkpoint():
-    checkpoint_each_app = splunk_lib_util.make_splunkhome_path(["etc", "apps", "ds_management_app", "data", "checkpoint", "checkpoint_each_app.txt"])
     if os.path.isfile(checkpoint_each_app):
         log("INFO","Checkpoint for each app is already created")
         return
-
+    
     compress_app_update_checkpoint()
     
     with open(checkpoint_each_app, 'w') as fp:
@@ -200,21 +307,20 @@ def set_app_checkpoint():
         
 # Function to create serverclass and push setup apps in the serversclass
 def push_script():
-    checkpoint_copy_setup_app = splunk_lib_util.make_splunkhome_path(["etc", "apps", "ds_management_app", "data", "checkpoint", "checkpoint_copy_setup_app.txt"])
-    if os.path.isfile(checkpoint_copy_setup_app):
-        log("INFO","Setup app for DS is already copied")
-        return    
-
+    paths = read_ds_config()
+    src_repository_location = paths['source_repositoryLocation']
+    
     # Ensure the deployment directory exists
     os.makedirs(ds_setup_app_dir, exist_ok=True)
-    os.makedirs(deployment_app_dir, exist_ok=True)
+    os.makedirs(src_repository_location, exist_ok=True)
+    os.makedirs(checkpoint_dir, exist_ok=True)
 
     try:        
         for file_name in os.listdir(ds_setup_app_dir):
             if file_name.endswith(".tgz"):
                 file_path = os.path.join(ds_setup_app_dir, file_name)
                 app_name = file_name.rsplit('.', 1)[0]  # Extract app name by removing the .tgz extension
-                app_deployment_path = os.path.join(deployment_app_dir, app_name)
+                app_deployment_path = os.path.join(src_repository_location, app_name)
                 
                 # Remove existing app directory if it exists
                 if os.path.exists(app_deployment_path):
@@ -223,20 +329,13 @@ def push_script():
                 
                 # Extract the .tgz file to the deployment directory
                 with tarfile.open(file_path, "r:gz") as tar:
-                    tar.extractall(path=deployment_app_dir)
-                    log("INFO",f"Extracted {file_name} to {deployment_app_dir}")
+                    tar.extractall(path=src_repository_location)
+                    log("INFO",f"Extracted {file_name} to {src_repository_location}")
                            
-        with open(checkpoint_copy_setup_app, 'w') as fp:
-            log("INFO","Successfully added setup app for DS")
-            pass                    
+
+        log("INFO","Successfully added setup app for DS")
+                  
         
     except Exception as e:
         log("ERROR", f"Error while adding setup apps :{e}")
 
-  
-# Execute functions
-if __name__ == "__main__":
-    copy_apps()
-    convert_conf_to_csv()
-    set_app_checkpoint()
-    push_script()

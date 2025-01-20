@@ -1,0 +1,133 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f9;
+  color: #333;
+}
+
+.dashboard-container {
+  margin: 20px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  align-content: space-between;
+  justify-content: center;
+}
+
+.filters label {
+  display: inline-block;
+  width: 100px;
+  font-weight: bold;
+}
+
+.filters input {
+  padding: 5px;
+  width: 95%;
+}
+
+#search-button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#search-button:hover {
+  background-color: #0056b3;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+table th,
+table td {
+  padding: 10px;
+  text-align: left;
+  border: 1px solid #ddd;
+}
+
+table th {
+  background-color: #007bff;
+  color: white;
+}
+
+table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+/* Hide dashboard title */
+.dashboard-header-title {
+  display: none;
+}
+
+.dashboard-body {
+  padding: 0 0px 0px;
+  background-color: #f2f4f5;
+  min-height: 500px;
+}
+
+.dashboard-header {
+  display: none;
+}
+
+.pagination-controls {
+  display: flex;
+  justify-content: flex-end; /* Align to the right */
+  margin: 10px 0; /* Add spacing */
+}
+
+.top-pagination {
+  margin-bottom: 0; /* No extra spacing at the bottom of top pagination */
+}
+
+.bottom-pagination {
+  margin-top: 0; /* No extra spacing at the top of bottom pagination */
+}
+
+.pagination-controls button {
+  margin: 0 5px; /* Add spacing between buttons */
+}
+
+.no-border-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.no-border-table th,
+.no-border-table td {
+  padding: 2px;
+  margin: 0px;
+  text-align: left;
+  border: none;
+  color: black;
+  background-color: unset;
+}
+
+.hideColumn {
+    display: none;
+}
+
+#data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}

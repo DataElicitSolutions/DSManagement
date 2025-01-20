@@ -1,0 +1,73 @@
+<dashboard version="1.1" script="dsm_dc_info.js" stylesheet="dsm_dc_info.css" hideEdit="true" hideExport="true">
+  <label>Deployment Client</label>
+  <row>
+    <panel>
+     <html>
+        <div class="dashboard-container">
+          <h1>Splunk Data Dashboard</h1>
+          <hr></hr>
+          <div class="filters">
+            <table class="no-border-table">
+              <thead>
+                <tr>
+                  <th>Hostname</th>
+                  <th>Server Name</th>
+                  <th>Client Name</th>
+                  <th>IP Address</th>
+                  <th>Operating System</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><input type="text" id="hostname" placeholder="Enter hostname" /></td>
+                  <td><input type="text" id="servername" placeholder="Enter server name" /></td>
+                  <td><input type="text" id="clientname" placeholder="Enter client name" /></td>
+                  <td><input type="text" id="ip" placeholder="Enter IP address" /></td>
+                  <td><input type="text" id="os" placeholder="Enter OS" /></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="filters">
+              <button id="search-button">Search</button>
+          </div>
+          <!-- Top Pagination Controls -->
+          <div class="pagination-controls top-pagination">
+              <button id="prev-page-top">Previous</button>
+              <span id="pagination-info-top"></span>
+              <button id="next-page-top">Next</button>
+          </div>
+          <table id="data-table" style="width: 100%;">
+            <!--<colgroup>-->
+            <!--    <col span="8" />-->
+            <!--    <col span="1" style="visibility: collapse" />-->
+            <!--</colgroup>-->
+              <thead>
+                  <tr>
+                      <th data-column="hostname">Hostname <span class="sort-icon">↓</span></th>
+                      <th data-column="servername">Server Name <span class="sort-icon">↓</span></th>
+                      <th data-column="clientname">Client Name <span class="sort-icon">↓</span></th>
+                      <th data-column="ip">IP Address <span class="sort-icon">↓</span></th>
+                      <th data-column="os">Operating System <span class="sort-icon">↓</span></th>
+                      <th data-column="serverclass">Serverclass<span class="sort-icon">↓</span></th>
+                      <th data-column="installed_apps">Installed Apps <span class="sort-icon">↓</span></th>
+                      <th data-column="failed_apps">Failed Apps <span class="sort-icon">↓</span></th>
+                      <th data-column="last_phonehome">Last Phonehome Time <span class="sort-icon">↓</span></th>
+                      <th data-column="last_phonehome_epoc" class="hideColumn"><span class="sort-icon">↓</span></th>
+                  </tr>
+              </thead>
+              <tbody>
+                  <!-- Data will be populated here -->
+              </tbody>
+          </table>
+          <br></br>
+          <div class="pagination-controls bottom-pagination">
+              <button id="prev-page">Previous</button>
+              <span id="pagination-info"></span>
+              <button id="next-page">Next</button>
+          </div>
+      </div>
+      </html>
+    </panel>
+  </row>
+</dashboard>

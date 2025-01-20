@@ -1,14 +1,13 @@
 /* General Tab Styling */
 .tabs {
   display: flex;
-  border-bottom: 1px solid #ccc;
+  /* border-bottom: 1px solid #ccc; */
   cursor: pointer;
 }
 
 .tab {
   padding: 10px 20px;
   border: 1px solid #ccc;
-  border-bottom: none;
   margin-right: 5px;
   background-color: #f9f9f9;
   color: black;
@@ -30,6 +29,7 @@
   display: none;
   padding: 20px;
   border: 1px solid #ccc;
+  border-radius: 10px;
 }
 
 .content.active {
@@ -164,6 +164,15 @@ button:hover {
   border: none;
   border-radius: 5px;
   width: 150px;
+}
+
+#ds_managment_reload_button {
+  background-color: green;
+  color: white;
+  padding: 10px 10px;
+  border: none;
+  border-radius: 5px;
+  width: 200px;
 }
 
 #addApp {
@@ -313,6 +322,7 @@ td {
   
   /* Styling the button */
   .simple-button {
+    margin-top: 20px;
     background-color: blue;
     color: white;
     border: none;
@@ -328,3 +338,35 @@ td {
     background-color: rgb(102, 163, 5);
   }
   
+
+.manage-container {
+    font-family: Arial, sans-serif;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    width: 95%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+
+.manage-container h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 30px;
+}
+
+/* Hide dashboard title */
+.dashboard-header-title{
+  display: none;
+}
+
+.dashboard-body {
+  padding: 0 0px 0px; 
+  background-color: #f2f4f5;
+  min-height: 500px;
+}
+
+.dashboard-header {
+  display: none;
+}

@@ -1,0 +1,47 @@
+<dashboard version="1.1" script="dsm_migrate_deployment.js" stylesheet="dsm_migrate_deployment.css">
+  <label>Migrate Deployment Server</label>
+  <row>
+    <panel>
+     <html>
+        <div id="overlay" style="display: none;">
+            <div id="content-wrapper">
+                <div id="loader"></div> <!-- Loader -->
+                <div id="status_message"></div> <!-- Status message -->
+            </div>
+        </div>
+       <div class="migration-container">
+            <h1><b>Migration Options</b></h1>
+            <hr></hr>
+            <div class="checkbox-group">
+                <label>
+                    <input type="checkbox" id="migrateApps" />
+                    Migrate Apps
+                </label>
+                <div class="source-destination"  id="appsPaths" style="display: none;">
+                    <p><strong>Source:</strong> <code> $SPLUNK_HOME/etc/deployment-apps </code></p>
+                    <p><strong>Destination:</strong> <code id="repoLocation"></code></p>
+                </div>
+            </div>
+            <div class="checkbox-group">
+                <label>
+                    <input type="checkbox" id="migrateServerclass" />
+                    Migrate serverclass.conf
+                </label>
+                <div class="source-destination" id="serverclass-box" style="display: none;">
+                    <p>
+                        By default, we will migrate <code>$SPLUNK_HOME/etc/system/local/serverclass.conf</code> file.
+                    </p>
+                </div>
+            </div>
+            <div class="checkbox-group">
+                <label>
+                    <input type="checkbox" id="overrideServerclass" />
+                    Override existing Application/Serverclass (if unchecked, Application/Serverclass will be merged)
+                </label>
+            </div>
+            <button id="submitButton" class="submit-button">Submit</button>
+        </div>
+      </html>
+    </panel>
+  </row>
+</dashboard>

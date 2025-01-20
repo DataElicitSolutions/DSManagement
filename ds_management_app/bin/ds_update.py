@@ -1,4 +1,4 @@
-import csv, sys, os
+import csv, sys, os, json, configparser
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "lib"))
 from ds_utils import log
 from splunklib.searchcommands import dispatch, GeneratingCommand, Configuration, Option, validators
@@ -7,14 +7,32 @@ import splunk.appserver.mrsparkle.lib.util as splunk_lib_util
 from ds_reload import copy_files_to_tmp_location
 from extract_csv_parms import extrace_csv
 from setup import create_machine_types_filter_file
-serverclass_csv = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_management_app','lookups', 'serverclass.csv'])
 
+serverclass_csv = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_management_app','lookups', 'serverclass.csv'])
+ds_conf_path= splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_management_app', 'local', 'ds.conf'])
 
 # Helper function to write rows to the CSV
 def write_rows(file, rows):
     with open(file, mode='w', newline='') as f:
         writer = csv.writer(f)
         writer.writerows(rows)
+
+def get_apps_present_in_json(path):
+    try:
+        # Get a list of all directories at the specified path
+        directories = [name for name in os.listdir(path) if os.path.isdir(os.path.join(path, name))]
+        
+        # Convert the list to JSON format
+        directories_json = {"apps": directories}
+        
+        return directories_json
+    
+    except FileNotFoundError:
+        print(f"Error: The path '{path}' does not exist.")
+        return json.dumps({"error": f"The path '{path}' does not exist."}, indent=4)
+    except Exception as e:
+        print(f"An unexpected error occurred: {str(e)}")
+        return json.dumps({"error": str(e)}, indent=4)
  
 @Configuration()
 class UpdateDSConfig(GeneratingCommand):
@@ -36,7 +54,7 @@ class UpdateDSConfig(GeneratingCommand):
     def generate(self):
 
         try:
-            log("INFO","Serverclass update in progress...")
+            
             action=self.action
             apps=self.apps
             serverclass=self.serverclass
@@ -70,10 +88,14 @@ class UpdateDSConfig(GeneratingCommand):
 
             # Process actions
             if action == "Remove":
+                log("INFO","Serverclass update in progress...")
                 # Just remove all rows starting with the serverclass
                 write_rows(serverclass_csv, rows)
-
+                result = {"status": "success" , "message": "Serverclass upadated successfully"}
+                yield result
+                
             elif action in ["Update", "Add"]:
+                log("INFO","Serverclass update in progress...")
                 # New rows to add
                 new_rows = []
 
@@ -122,14 +144,28 @@ class UpdateDSConfig(GeneratingCommand):
                 
                 log("INFO","Serverclass updated Successfully")
                 log("INFO", "Reload deployment server is in progress...")
-                copy_files_to_tmp_location()
                 extrace_csv()
                 create_machine_types_filter_file()
+                copy_files_to_tmp_location()
                 
                 log("INFO","Successfully reloaded deployment server")
-
-            result = {"status": "success" , "message": "Serverclass upadated successfully"}
-            yield result
+                
+                result = {"status": "success" , "message": "Serverclass upadated successfully"}
+                yield result
+                
+            elif action in ["getAllApps"]:
+                if os.path.exists(ds_conf_path):
+                    config = configparser.ConfigParser()
+                    config.read(ds_conf_path)
+                    try:
+                        dest_location = config.get('general', 'dest_repositorylocation')
+                        message = get_apps_present_in_json(dest_location)   
+                        yield {"status": "success", "message" : message["apps"]}
+                    except (configparser.NoSectionError, configparser.NoOptionError) as e:
+                        log("ERROR",f"Error reading JSON file: {e}")
+                        yield {"status": "error", "message": "Error reading conf file"}
+                else:
+                    yield {"status": "info", "message" : "JSON file is not present"}
 
         except Exception as e:
             # Handle errors and return error result to JavaScript

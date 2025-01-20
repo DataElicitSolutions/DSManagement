@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, traceback
 import time
 from datetime import datetime
 sys.path.append(os.path.dirname(__file__))
@@ -36,19 +36,15 @@ class DCStatusHandler(PersistentServerConnectionApplication):
             # dc_info=[["0","win_1"],["1","win_2"]]
             log("INFO", f"Getting call from deployment client: {str(dc)} - to save app information")
             app_data={name[0]:name[1] for name in dc_info}
-            # headers = ["_time", "dc_ip", "guid", "scrit_start_time", "phonehome_complete_time", "app_download_complete_time", "script_end_time", "installed_apps"]
-            # unique_keys=["dc_ip", "guid"]
-            # store_dc_info(data,headers,unique_keys,dc_app_status_csv)
-            
+
             for key in app_data:
                 if key in ["current_time","script_start_time", "phonehome_complete_time", "app_download_complete_time", "script_end_time"]:            
-                    # dt_object = datetime.strptime(app_data[key], "%Y-%m-%d %H:%M:%S")
-                    # app_data[key] = int(time.mktime(dt_object.timetuple()))
                     if app_data[key]:  # Check if the value is not empty or None
                         try:
                             dt_object = datetime.strptime(app_data[key], "%Y-%m-%d %H:%M:%S")
                             app_data[key] = int(time.mktime(dt_object.timetuple()))
                         except ValueError as e:
+                            app_data[key]=""
                             log("ERROR",f"Error parsing datetime for key '{key}': {e}")  
                             
             upate_dc_app_status_csv(f"{app_data['current_time']},{dc},{app_data['guid']},{app_data['script_start_time']},{app_data['phonehome_complete_time']},{app_data['app_download_complete_time']},{app_data['script_end_time']},\"{app_data['installed_apps']}\",\"{app_data['failed_apps']}\"")
@@ -60,8 +56,8 @@ class DCStatusHandler(PersistentServerConnectionApplication):
 
         except Exception as e:
             log("ERROR", f"Failed to process request - save DC info: {str(e)}")
-            # log(traceback.format_exc())
-            payload["error"] = str(e)
+            log("ERROR",traceback.format_exc())
+            payload["error"] = "Error while processing your request. Please check logs on deployment server"
             payload["status"] = 500
 
         # Store the result and set the event to notify the main thread

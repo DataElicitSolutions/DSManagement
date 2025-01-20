@@ -1,16 +1,10 @@
-import csv,re, os
+import csv,re, os,traceback
 from splunk.clilib.bundle_paths import make_splunkhome_path
 import splunk.appserver.mrsparkle.lib.util as splunk_lib_util
 from ds_utils import log
 
 main_csv_path = splunk_lib_util.make_splunkhome_path(["etc", "apps", "ds_management_app", "lookups", "serverclass.csv"])
-secoundary_csv_path = splunk_lib_util.make_splunkhome_path(["etc", "apps", "ds_management_app", "var", "run", "serverclass.csv"])
-
-# Example usage:
-# main_csv_path = "/Applications/Splunk/etc/apps/ds_management_app/lookups/serverclass.csv"
-# dest_csv_base_path = "/Applications/Splunk/etc/apps/ds_management_app/lookups/final.csv"
-# secoundary_csv_path="/Applications/Splunk/etc/apps/ds_management_app/var/run/serverclass.csv"
-
+secoundary_csv_path = splunk_lib_util.make_splunkhome_path(["var", "run", "ds_management_app", "lookups", "serverclass.csv"])
 
 def is_line_present(target_row):
     """
@@ -34,9 +28,27 @@ def convert_to_int(value):
     except (ValueError, TypeError):
         return value
 
+def make_path(path):
+    if os.sep == "\\":
+        if("/" in path):
+            return
+        else:
+            return path.split(os.sep)
+    elif os.sep == "/":
+        if("\\" in path):
+            return
+        else:
+            return path.split(os.sep)
+    else:
+        return path
 
 def extrace_csv():
     
+    
+    if not os.path.exists(main_csv_path):
+        with open(main_csv_path, mode='w') as main_csv_file:
+            main_csv_file.write('Serverclass,App,Key,Value\n')
+            
     os.makedirs(os.path.dirname(secoundary_csv_path), exist_ok=True) 
     
     with open(main_csv_path, mode='r') as main_csv_file:
@@ -50,10 +62,14 @@ def extrace_csv():
         serverclass, app, key, value = row["Serverclass"], row["App"], row["Key"], row["Value"]
 
         if key == 'blacklist_from_pathname' or key =='whitelist_from_pathname':
-            dest_csv_path = "/Applications/Splunk/"+str(value)  # This is the path to the destination CSV
-            
+            dest_csv_path = make_path(str(value))  # This is the path to the destination CSV
+            if dest_csv_path == None:
+                log("ERROR",f"CSV path: {str(value)} is incorrect for serverclass: {serverclass}. Please ensure you are using proper path seperator as per the OS.")
+                continue
+            else:
+                dest_csv_path = splunk_lib_util.make_splunkhome_path(dest_csv_path)
+                   
             method=str(key.split("_")[0])
-            
             # Check for all ohter conditional parameters
             present_select_field_row,select_field_row_value=is_line_present([serverclass,app,method+"_select_field"])
             present_where_field_row,where_field_row_value=is_line_present([serverclass,app,method+"_where_field"])
@@ -61,7 +77,7 @@ def extrace_csv():
             
             # Make a list of where_equals parameter
             if where_equals_row_value != None:
-                where_equals_row_value=where_equals_row_value.split(",")
+                where_equals_row_value=str(where_equals_row_value).split(",")
                 where_equals_row_value= [".*"+value[1:] if value.startswith("*") else value for value in where_equals_row_value]
                 
             if select_field_row_value == None:
@@ -73,6 +89,8 @@ def extrace_csv():
                     dest_reader = csv.reader(dest_csv_file)
                     
                     header=True
+                    if type(select_field_row_value)== int:
+                        header = False
                     header_line=[]
                     
                     for line in dest_reader:
@@ -125,26 +143,37 @@ def extrace_csv():
                         
                         # where_field and where_equals present the filter hostname
                         if present_where_field_row and present_where_equals_row:
-                            if not any(re.match(pattern.strip(), line[where_field_row_value]) for pattern in where_equals_row_value):
+                            try:
+                                if not any(re.match(pattern.strip(), line[where_field_row_value]) for pattern in where_equals_row_value):
+                                    continue
+                            except Exception as e:
+                                log("ERROR","Error in where field filter: "+str(e))
                                 continue
                         
                         # Make a row to insert in new file (./var/run/serverclass.csv)
-                        updated_rows.append({
-                            "Serverclass": serverclass,
-                            "App": app,
-                            "Key": method,
-                            "Value": line[select_field_row_value]
-                        })
+                        try:
+                            updated_rows.append({
+                                "Serverclass": serverclass,
+                                "App": app,
+                                "Key": method,
+                                "Value": line[select_field_row_value]
+                            })
+                        except Exception as e:
+                            log("ERROR","Error in creating updated row: "+str(e))
+                            continue
                 main_data.remove(row)
             except FileNotFoundError:
                 log("WARN",f"Destination CSV file not found: {dest_csv_path}")
             except Exception as e:
+                log("ERROR",traceback.format_exc())
                 log("ERROR", f"Error in csv extraction: {e}")
+        else:
+            updated_rows.append(row)
                 
     # write data in - ./var/run/serverclass.csv        
     with open(secoundary_csv_path, mode='w', newline='') as secoundary_csv_file:
         fieldnames = ["Serverclass", "App", "Key", "Value"]
         writer = csv.DictWriter(secoundary_csv_file, fieldnames=fieldnames)
         writer.writeheader()
-        writer.writerows(main_data + updated_rows)
+        writer.writerows(updated_rows)
     log("INFO","CSV extraction is completed")

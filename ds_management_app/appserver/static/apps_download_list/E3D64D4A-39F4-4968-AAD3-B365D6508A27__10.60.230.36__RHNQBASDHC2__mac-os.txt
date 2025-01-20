@@ -1,6 +1,0 @@
-001_regn_tar_TTLSWDPR80144,None
-regn_splunk_restart,None
-regn_all_rhn_uf_outputs,None
-regn_all_historian_inputs,None
-100_ngxp_regn_tarsplunkds02p_deploymentclient,None
-regn_all_deploymentclient,None

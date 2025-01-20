@@ -1,0 +1,135 @@
+/* General Reset */
+body, html {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+    height: 100%;
+}
+
+
+/* Configuration Container */
+.config-container {
+    width: 90%;
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+.config-container h1 {
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #333;
+}
+
+/* Form Styling */
+.form-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+label {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 5px;
+    display: block;
+}
+
+/* Hide dashboard title */
+.dashboard-header-title{
+    display: none;
+}
+
+.dashboard-body {
+    padding: 0 0px 0px; 
+    background-color: #f2f4f5;
+    min-height: 500px;
+}
+
+.dashboard-header {
+    display: none;
+}
+
+
+input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+input:focus {
+    border-color: #2575fc;
+    outline: none;
+    box-shadow: 0 0 5px rgba(37, 117, 252, 0.5);
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background: #2575fc;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+button:hover {
+    background: #6a11cb;
+}
+
+/* Loader JS */
+/* Overlay */
+/* Overlay to cover the screen */
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Gray with opacity */
+    z-index: 998; /* Ensure it is on top */
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+}
+
+/* Wrapper to stack loader and message */
+#content-wrapper {
+    display: flex;
+    flex-direction: column; /* Stack loader and message vertically */
+    justify-content: center; /* Center vertically inside wrapper */
+    align-items: center; /* Center horizontally inside wrapper */
+}
+
+/* Loader */
+#loader {
+    border: 8px solid #f3f3f3; /* Light grey */
+    border-top: 8px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite; /* Enable spinning animation */
+}
+
+/* Status Message */
+#status_message {
+    margin-top: 15px; /* Space between loader and message */
+    font-size: 16px;
+    text-align: center;
+    color: blue;
+    z-index: 999; /* Ensure it is on top */
+}
+
+/* Loader Animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

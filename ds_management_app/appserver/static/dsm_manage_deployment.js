@@ -25,27 +25,58 @@ require([
         $("#status_message").text(msg); 
     } 
     
-    function endLoader(){
+    function endLoader(msg){
         $("#overlay").fadeOut();
         $("body").css("overflow", "auto");
+        if (msg) {
+            // Create a message and display it at the bottom of the screen
+            const message = $(`<div class='notification-message'>${msg}</div>`);
+            $("body").append(message);  // Append the message to the body
+
+            // Style the message and show it
+            message.css({
+                position: "fixed",
+                bottom: "20px",  // Adjust this to control how high the message is from the bottom
+                left: "50%",
+                transform: "translateX(-50%)",
+                backgroundColor: "#28a745",  // Green background
+                color: "#fff",
+                padding: "10px 20px",
+                borderRadius: "5px",
+                fontSize: "16px",
+                textAlign: "center",
+                zIndex: 9999
+            });
+
+            // Hide the message after 10 seconds
+            setTimeout(function () {
+                message.fadeOut(function () {
+                    $(this).remove();  // Remove the message after fading out
+                });
+            }, 5000);  // 10000 milliseconds = 10 seconds
+        }
     }  
 
     function resetUI(){
         // Hide tabs (app/client) and remove submit panel
         $("#tab1").prop("disabled",true);
         $("#tab2").prop("disabled",true);
-        defaultTokenModel.unset("submit_panel"); 
-        submittedTokenModel.unset("submit_panel");
-        defaultTokenModel.unset("add_app"); 
-        submittedTokenModel.unset("add_app"); 
-        defaultTokenModel.unset("add_client"); 
-        submittedTokenModel.unset("add_client");
+        $("#submit_panel").css("display", "none");
+        // defaultTokenModel.unset("submit_panel"); 
+        // submittedTokenModel.unset("submit_panel");
+        $("#add_app").css("display", "none");
+        $("#add_client").css("display", "none");
+        // defaultTokenModel.unset("add_app"); 
+        // submittedTokenModel.unset("add_app"); 
+        // defaultTokenModel.unset("add_client"); 
+        // submittedTokenModel.unset("add_client");
         $("#tab1").removeClass("active");
         $("#tab2").removeClass("active");
     }
 
     function populateDropdown(dropdownId, defaultOptionText,selected_value) {
-        var searchManager
+        let searchManager;
+
         if(dropdownId=="#dropdown"){
             searchManager = new SearchManager({
                 search: "| inputlookup serverclass.csv | dedup Serverclass | table Serverclass | sort Serverclass",
@@ -53,9 +84,9 @@ require([
                 cache: false,
                 autostart: false  
             });
-        }else{
+        } else {
             searchManager=new SearchManager({
-                search: loadAppSearchQuery(),
+                search: updateDSSearchQuery("Null","getAllApps","Null","Null","Null","Null","Null","Null","Null","Null","Null","Null","Null","Null"),
                 preview: true,
                 cache: false,
                 autostart: false  
@@ -67,15 +98,28 @@ require([
             const results = searchManager.data("results", { count: 0 });
             results.on("data", function () {
                 const rows = results.data()?.rows;
+
                 const $dropdown = $(dropdownId);
                 $dropdown.empty().append(`<option value="">${defaultOptionText}</option>`);
 
-                if (rows && rows.length > 0) {
-                    rows.forEach(row => {
-                        $dropdown.append(`<option value="${row[0]}">${row[0]}</option>`);
-                    });
+                // Special case for #appDropdown to handle apps JSON structure
+                if (dropdownId === "#appDropdown") {
+                    const appData = rows[0][1];
+                    if (appData && appData.length > 0) {
+                        appData.forEach(app => {
+                            $dropdown.append(`<option value="${app}">${app}</option>`);
+                        });
+                    } else {
+                        $dropdown.append(`<option value="">No Results Found</option>`);
+                    }
                 } else {
-                    $dropdown.append(`<option value="">No Results Found</option>`);
+                    if (rows && rows.length > 0) {
+                        rows.forEach(row => {
+                            $dropdown.append(`<option value="${row[0]}">${row[0]}</option>`);
+                        });
+                    } else {
+                        $dropdown.append(`<option value="">No Results Found</option>`);
+                    }
                 }
                 if(selected_value!=""){
                     $dropdown.val(selected_value);
@@ -83,6 +127,10 @@ require([
                 }
             });
             searchManager = null
+        });
+        // Optionally, handle any search errors
+        searchManager.on("search:error", function() {
+            $("#status_message").text("An error occurred while loading Serverclass")
         });
         
     }
@@ -92,11 +140,39 @@ require([
 
         $("#tab1").prop("disabled",true);
         $("#tab2").prop("disabled",true);
-        defaultTokenModel.unset("submit_panel"); 
-        submittedTokenModel.unset("submit_panel");
+        $("#submit_panel").css("display", "none");
+        $("#add_app").css("display", "none");
+        $("#add_client").css("display", "none");
+        // defaultTokenModel.unset("submit_panel"); 
+        // submittedTokenModel.unset("submit_panel");
+        fetchRepoLocationSearch = new SearchManager({
+            search: "| dssetup ",
+            preview: true,
+            cache: false,
+            autostart: true  
+        });
+        fetchRepoLocationSearch.on("search:done", function() {
+            var results = fetchRepoLocationSearch.data("results", { count: 1 });
+            results.on("data", function() {
+                const rows = results.data()?.rows;
+                if (rows && rows.length > 0) {
+                    const status = rows[0][0];  // First element: "success"
+                    const message = rows[0][1]; // Second element: "JSON message"
+                    if (status == "success") {
+                        const data = JSON.parse(message); // Parse the JSON string into an object
+                        if (data.dest_repositoryLocation) {
+                            $("#repoLocation").text(data.dest_repositoryLocation);
+                        } else {
+                            $("#repoLocation").text("Not set");
+                        }                
+                    } else {
+                        $("#repoLocation").text("Not set");
+                    }  
+                } 
+            });
+        });
         populateDropdown( "#dropdown", "Select a Serverclass","");
-        populateDropdown( "#appDropdown", "Select an App","");
-   
+        populateDropdown( "#appDropdown", "Select an App","");   
     });
 
     function is_serverclass_present(serverclassName, callback) {
@@ -200,14 +276,17 @@ require([
                 var results = updateDSSearch.data("results", { count: 0 }); // Get all rows
                 results.on("data", function() {
                     const rows = results.data()?.rows;
+                    let msg=""
                     if (rows[0][0] === "success") { 
                         populateDropdown( "#dropdown", "Select a Serverclass","");
                         $("#dropdown").val("");
-                        $("#status_message").text("Serverclass removed successfully !!!");         
+                        msg="Serverclass removed successfully !!!"
+                        $("#status_message").text(msg);         
                     }else{
-                        $("#status_message").text("Error while removing Serverclass");
+                        msg="Error while removing Serverclass"
+                        $("#status_message").text(msg);
                     } 
-                    endLoader();
+                    endLoader(msg);
                     resetUI()
                     updateDSSearch=null
                 });
@@ -226,12 +305,15 @@ require([
         if (selectedOption) {
             startLoader("Loading Serverclass ...")
             const check_flag=0
-            defaultTokenModel.set("add_app","true"); 
-            defaultTokenModel.unset("add_client"); 
-            defaultTokenModel.set("submit_panel","true"); 
-            submittedTokenModel.set("add_app","true"); 
-            submittedTokenModel.unset("add_client"); 
-            submittedTokenModel.set("submit_panel","true"); 
+            $("#add_app").css("display", "block");
+            $("#submit_panel").css("display", "block");
+            $("#add_client").css("display", "none");
+            // defaultTokenModel.set("add_app","true"); 
+            // defaultTokenModel.unset("add_client"); 
+            // defaultTokenModel.set("submit_panel","true"); 
+            // submittedTokenModel.set("add_app","true"); 
+            // submittedTokenModel.unset("add_client"); 
+            // submittedTokenModel.set("submit_panel","true"); 
             
             $("#tab1").addClass("active");
             $("#tab2").removeClass("active");
@@ -364,19 +446,23 @@ require([
     });
 
     $("#tab1").click(function(){
-        defaultTokenModel.set("add_app","true"); 
-        defaultTokenModel.unset("add_client"); 
-        submittedTokenModel.set("add_app","true"); 
-        submittedTokenModel.unset("add_client"); 
+        $("#add_app").css("display", "block");
+        $("#add_client").css("display", "none");
+        // defaultTokenModel.set("add_app","true"); 
+        // defaultTokenModel.unset("add_client"); 
+        // submittedTokenModel.set("add_app","true"); 
+        // submittedTokenModel.unset("add_client"); 
         $("#tab1").addClass("active");
         $("#tab2").removeClass("active");
     });
 
     $("#tab2").click(function(){
-        defaultTokenModel.set("add_client","true");
-        defaultTokenModel.unset("add_app"); 
-        submittedTokenModel.set("add_client","true");
-        submittedTokenModel.unset("add_app"); 
+        $("#add_client").css("display", "block");
+        $("#add_app").css("display", "none");
+        // defaultTokenModel.set("add_client","true");
+        // defaultTokenModel.unset("add_app"); 
+        // submittedTokenModel.set("add_client","true");
+        // submittedTokenModel.unset("add_app"); 
         $("#tab2").addClass("active");
         $("#tab1").removeClass("active");
     });
@@ -438,6 +524,52 @@ require([
         }
     });
 
+    // Reload DS Button
+    $("#ds_managment_reload_button").click(function() {
+
+        startLoader("Reloading Serverclass ...")
+        // Start the search
+        customCommandSearch = new SearchManager({
+            search: "| dsreload",
+            preview: true,
+            cache: false,
+            autostart: false  
+        });
+
+        customCommandSearch.startSearch();
+
+        customCommandSearch.on("search:done", function() {
+        
+            var results = customCommandSearch.data("results", { count: 1 });
+            results.on("data", function() {
+                const rows = results.data()?.rows;
+                let msg=""
+                if (rows && rows.length > 0) {
+                    const status = rows[0][0];  // First element: "success"
+                    const summary = rows[0][2]; // Second element: "summary"
+                    const message = rows[0][1]; // Third element: "message."
+                    msg=message
+                    if (status === "success") {
+                        $("#status_message").text(message)
+                        // $("#summary_message").html(summary_output).css("color", "blue");
+                    } else {
+                        $("#status_message").text(message)
+                        // $("#summary_message").html(summary_output).css("color", "blue");
+                    }
+                } 
+                endLoader(msg);
+                });
+        });
+    
+        // Optionally, handle any search errors
+        customCommandSearch.on("search:error", function() {
+            $("#status_message").text("An error occurred while reloading Serverclass").css("color", "red");
+        });
+    });
+
+
+
+
     // Submit button JS
     $("#submitButton").on("click", function () {
         startLoader("Updating Serverclass ...")
@@ -447,16 +579,30 @@ require([
         const whitelistValue = $("#whitelist").val().trim();
         const blacklistValue = $("#blacklist").val().trim();
         const machineTypesFilterValue = $("#machineTypesFilter").val().trim();
-
+        
         //  Fetch Whitelist/Blacklist Filepath value
-        const whitelistFromPathname = $("#whitelistFromPathname").val().trim();
-        const whitelistSelectField = $("#whitelistSelectField").val().trim();
-        const whitelistWhereField = $("#whitelistWhereField").val().trim();
-        const whitelistWhereEquals = $("#whitelistWhereEquals").val().trim();
-        const blacklistFromPathname = $("#blacklistFromPathname").val().trim();
-        const blacklistSelectField = $("#blacklistSelectField").val().trim();
-        const blacklistWhereField = $("#blacklistWhereField").val().trim();
-        const blacklistWhereEquals = $("#blacklistWhereEquals").val().trim();
+        whitelistFromPathname = $("#whitelistFromPathname").val().trim();
+        whitelistSelectField = $("#whitelistSelectField").val().trim();
+        whitelistWhereField = $("#whitelistWhereField").val().trim();
+        whitelistWhereEquals = $("#whitelistWhereEquals").val().trim();
+        blacklistFromPathname = $("#blacklistFromPathname").val().trim();
+        blacklistSelectField = $("#blacklistSelectField").val().trim();
+        blacklistWhereField = $("#blacklistWhereField").val().trim();
+        blacklistWhereEquals = $("#blacklistWhereEquals").val().trim();
+
+        if (!$("#whitelistToggle").prop("checked")) {
+            whitelistFromPathname="Null";
+            whitelistSelectField="Null";
+            whitelistWhereField="Null";
+            whitelistWhereEquals="Null";
+        }
+
+        if (!$("#blacklistToggle").prop("checked")) {
+            blacklistFromPathname="Null";
+            blacklistSelectField="Null";
+            blacklistWhereField="Null";
+            blacklistWhereEquals="Null";
+        }
 
         // Fetch all apps from the table
         const apps = [];
@@ -494,7 +640,6 @@ require([
             autostart: false
             }
         );
-        console.log(filterData)
         
         updateDSSearch.startSearch();
         updateDSSearch.on("search:done", function() {
@@ -502,13 +647,16 @@ require([
             var results = updateDSSearch.data("results", { count: 0 }); // Get all rows
             results.on("data", function() {
                 const rows = results.data()?.rows;
+                let msg=""
                 if (rows[0][0] === "success") {
-                    $("#status_message").text("Serverclass updated successfully !!!")
+                    msg="Serverclass updated successfully !!!"
+                    $("#status_message").text(msg)
                     
                 } else {
-                    $("#status_message").text(`Error in serverclass update: ${rows[0][1]}`)
+                    msg=`Error in serverclass update: ${rows[0][1]}`
+                    $("#status_message").text(msg)
                 }    
-                endLoader()
+                endLoader(msg)
                 updateDSSearch=null
             });
         });

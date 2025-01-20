@@ -1,41 +1,50 @@
-<dashboard version="1.1" script="dsm_manage_deployment.js" stylesheet="dsm_manage_deployment.css">
-  <label>Manage Deployment Server</label>
+<dashboard version="1.1" script="dsm_manage_deployment.js" stylesheet="dsm_manage_deployment.css" hideEdit="true" hideExport="true">
+ <label>Manage Deployment Server</label>
   <row>
     <panel>
       <html>
+      <div class="manage-container">
+        <h1>Manage Deployment Server</h1>
+        <hr></hr>
+        <div style="display: flex; justify-content: space-between; align-items: center;" >
+          <div>
+            <b>Repository Location: </b>
+            <span id="repoLocation">Loading ...</span>
+          </div>
+          <div>
+          <button id="ds_managment_reload_button" class="btn btn-primary">Reload Deployment Server</button>
+          </div>
+        </div>
+        <div id="overlay" style="display: none;">
+            <div id="content-wrapper">
+                <div id="loader"></div> <!-- Loader -->
+                <div id="status_message"></div> <!-- Status message -->
+            </div>
+        </div>
+        <hr></hr>
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px;">
             <!-- Right Side Dropdown with Button -->
             <div>
-                <select id="dropdown" style="height: 35px; width: 320px; margin: 0px; border: 1px solid #ccc; border-radius: 5px;">
+                <select id="dropdown">
                      <option value="">Loading...</option>
                 </select>
-                <button id="modifyButton" style="background-color: blue; margin-left: 8px; width: 130px; color: white; padding: 10px 15px; border: none; border-radius: 5px;">Modify</button>
-                <button id="removeServerclass" style="background-color: #ee1515; color: white; margin-left: 8px; padding: 10px 10px; width: 150px; border: none; border-radius: 5px;">Remove Serverclass</button>
+                <button id="modifyButton">Modify</button>
+                <button id="removeServerclass">Remove Serverclass</button>
             </div>
             
             <!-- Left Side Buttons -->
             <div>
-                <button id="addServerclass" style="background-color: green; color: white; padding: 10px 10px; border: none; border-radius: 5px; width: 150px;">Add Serverclass</button>
+                <button id="addServerclass">Add Serverclass</button>
             </div>
         </div>
-      </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-    <html>
+    <hr></hr>
     <body>
       <div class="tabs">
           <button class="tab" id="tab1" data-tab="content1">Add Apps</button>
           <button class="tab" id="tab2" data-tab="content2">Add Client</button>
       </div>       
     </body>
-    </html>
-    </panel>
-  </row>
-<row>
-    <panel depends="$add_app$">
-    <html>
+    <div id="add_app">
     <body>
       <!-- Tab Content (Add Apps) -->
       <div class="content active" id="content1">
@@ -44,13 +53,13 @@
               <option value="">Select an App</option>
           </select>
           <button id="addApp">Add</button>
-          <button id="removeApp">Remove</button>
-
+          <br></br>
           <h3>Selected Apps</h3>
           <table id="selectedAppsTable">
               <thead>
                   <tr>
                       <th>App Name</th>
+                      <th>Remove App</th>
                   </tr>
               </thead>
               <tbody>
@@ -59,30 +68,85 @@
           </table>
       </div>
     </body>
-    </html>
-    </panel>
-  </row>
-<row>
-    <panel depends="$add_client$">
-    <html>
+    </div>
+    <div id="add_client">
     <body>
       <!-- Tab Content (Add Client) -->
-      <div class="content active" id="content2">
-          <h3>Machine Type Filter</h3>
-          <select id="machineTypeDropdown">
-              <option value="">Select Machine Type</option>
-              <option value="Linux">Linux</option>
-              <option value="Windows">Windows</option>
-          </select>
-
-          <h3>Text Area 1</h3>
-          <textarea id="textarea1"></textarea>
-
-          <h3>Text Area 2</h3>
-          <textarea id="textarea2"></textarea>
+      <div class="content horizontal-container">
+          <div class="filter-item">
+              <label for="whitelist">Include (whitelist)</label>
+              <textarea id="whitelist" rows="5" placeholder="No results found..."></textarea>
+              
+              <!-- Checkbox -->
+              <label>
+                  <input type="checkbox" id="whitelistToggle" />
+                  Show advanced whitelist options
+              </label>
+      
+              <!-- Text inputs, initially hidden -->
+              <div id="whitelistOptions" class="advanced-options">
+                  <label>whitelist.from_pathname</label>
+                  <input type="text" id="whitelistFromPathname" placeholder="Pathname (Ex. etc/apps/{app-name}/lookups/{csv-name}" />
+                  
+                  <label>whitelist.select_field</label>
+                  <input type="text" id="whitelistSelectField" placeholder="Field name or positive integer" />
+                  
+                  <label>whitelist.where_field</label>
+                  <input type="text" id="whitelistWhereField" placeholder="Field name or positive integer" />
+                  
+                  <label>whitelist.where_equals</label>
+                  <input type="text" id="whitelistWhereEquals" placeholder="Comma-separated values (e.g., value1,value2)" />
+              </div>
+          </div>
+      
+          <div class="filter-item">
+              <label for="blacklist">Exclude (blacklist)</label>
+              <textarea id="blacklist" rows="5" placeholder="No results found..."></textarea>
+              
+              <!-- Checkbox -->
+              <label>
+                  <input type="checkbox" id="blacklistToggle" />
+                  Show advanced blacklist options
+              </label>
+      
+              <!-- Text inputs, initially hidden -->
+              <div id="blacklistOptions" class="advanced-options">
+                  <label>blacklist.from_pathname</label>
+                  <input type="text" id="blacklistFromPathname" placeholder="Pathname (Ex. etc/apps/{app-name}/lookups/{csv-name}" />
+                  
+                  <label>blacklist.select_field</label>
+                  <input type="text" id="blacklistSelectField" placeholder="Field name or positive integer"  />
+                  
+                  <label>blacklist.where_field</label>
+                  <input type="text" id="blacklistWhereField" placeholder="Field name or positive integer"  />
+                  
+                  <label>blacklist.where_equals</label>
+                  <input type="text" id="blacklistWhereEquals" placeholder="Comma-separated values (e.g., value1,value2)" />
+              </div>
+          </div>
+      
+          <div class="filter-item">
+              <label for="machineTypesFilter">Machine Types Filter</label>
+              <textarea id="machineTypesFilter" rows="5" placeholder="No results found..."></textarea>
+          </div>
       </div>
     </body>
-    </html>
-    </panel>
+    </div>
+        <div id="submit_panel">
+        <div class="button-container">
+          <br></br>
+          <button class="simple-button" id="submitButton">Submit</button>
+        </div>
+        <div id="overlay" style="display: none;">
+            <div id="content-wrapper">
+                <div id="loader"></div> <!-- Loader -->
+                <div id="status_message"></div> <!-- Status message -->
+            </div>
+        </div>
+        </div>
+   
+  </div>
+  </html>
+  </panel>
   </row>
 </dashboard>

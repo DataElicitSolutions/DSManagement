@@ -2,7 +2,7 @@ import sys, os,traceback
 sys.path.append(os.path.dirname(__file__))
 import sa_import
 import json, threading
-from ds_utils import log, get_apps_for_input, get_apps_checkpoint,update_dc_info_csv
+from ds_utils import log, get_apps_for_input, get_apps_checkpoint,update_csv_file
 from splunk.persistconn.application import PersistentServerConnectionApplication
 from splunk.clilib.bundle_paths import make_splunkhome_path
 import splunk.appserver.mrsparkle.lib.util as splunk_lib_util
@@ -44,7 +44,7 @@ class DCStatusHandler(PersistentServerConnectionApplication):
             uf_names["ip"]=dc
             # headers = ["guid", "ip","private_ip", "hostname", "servername", "os"]
             # unique_keys=["guid", "ip"]
-            update_dc_info_csv(f"{uf_names['guid']},{uf_names['ip']},{uf_names['private_ip']},{uf_names['hostname']},{uf_names['servername']},{uf_names['os']},{uf_names['clientname']}")
+            update_csv_file("dc_info_csv",f"{uf_names['guid']},{uf_names['ip']},{uf_names['private_ip']},{uf_names['hostname']},{uf_names['servername']},{uf_names['os']},{uf_names['clientname']}")
             # store_dc_info(uf_names,headers,unique_keys,dc_info_csv)
             log("INFO",f"Stored client info: {dc}")
             required_unique_keys=[uf_names["clientname"],uf_names["ip"],uf_names["hostname"],uf_names["servername"]]

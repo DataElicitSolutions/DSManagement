@@ -8,6 +8,12 @@ dc_info_csv = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_managemen
 dc_serverclass_mapping = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_management_app', 'lookups', 'dc_serverclass_mapping.csv'])
 dc_app_status_csv = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_management_app', 'lookups', 'dc_app_status.csv'])
 
+# Lock Files
+dc_info_lock_file = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_management_app', 'lookups', 'dc_info_lock_file.txt'])
+dc_app_status_lock_file = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_management_app', 'lookups', 'dc_app_status_lock_file.txt'])
+dc_phonehome_time_lock_file = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_management_app', 'lookups', 'dc_phonehome_time_lock_file.txt'])
+dc_serverclass_mapping_lock_file = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_management_app', 'lookups', 'dc_serverclass_mapping_lock_file.txt'])
+
 # CSV for the machineTypesFilter
 machineTypesFilter_input_file = splunk_lib_util.make_splunkhome_path(["var", "run", "ds_management_app", "lookups", "serverclass.csv"])
 machineTypesFilter_output_file = splunk_lib_util.make_splunkhome_path(["var", "run", "ds_management_app", "lookups", "machine_types_filter.csv"])
@@ -25,6 +31,14 @@ def log(level, message):
 def dc_historical_log(level, message):
     with open(client_log_file_path, "a") as log_file:
         log_file.write(f"\n{level}: {message}")
+        
+def aquire_lock(lock_file_name):
+    with open(lock_file_name, "w") as lock_file:
+        pass
+    
+def release_lock(lock_file_name): 
+    if os.path.exists(lock_file_name):
+        os.remove(lock_file_name)
 
 def create_machine_types_filter_file():
     """
@@ -129,7 +143,7 @@ def get_apps_for_input(input_values, csv_file_path, os_name,uf_guid):
         apps.update(row['App'] for row in reader if row['Serverclass'] in whitelist_server_classes and row['App'] != '-')   
         
     message = f"{uf_guid},{','.join(input_values)},\"{','.join(whitelist_server_classes)}\",\"{','.join(apps)}\""
-    update_dc_serverclass_mapping_csv(message)  
+    update_csv_file("dc_serverclass_mapping", message)
     return apps
 
 
@@ -148,35 +162,36 @@ def get_apps_checkpoint(list_of_apps):
     return {app: checkpoints.get(app) for app in list_of_apps}
 
 
-def update_dc_serverclass_mapping_csv(message):
-        
-    if not os.path.exists(dc_serverclass_mapping) or os.path.getsize(dc_serverclass_mapping) == 0:
-        with open(dc_serverclass_mapping, "w") as log_file:
-            log_file.write("_time,guid,clientname,ip,hostname,servername,serverclass_list,apps_list\n")
+def update_csv_file(file_path, message):
+    headers = []
+    lock_file = ""
+    if file_path == "dc_info_csv":
+        file_path = dc_info_csv
+        lock_file = dc_info_lock_file
+        headers = ["_time", "guid", "ip", "private_ip", "hostname", "servername", "os", "clientname"]   
+    elif file_path == "dc_serverclass_mapping":
+        file_path = dc_serverclass_mapping
+        lock_file = dc_serverclass_mapping_lock_file
+        headers = ["_time", "guid", "clientname", "ip", "hostname", "servername", "serverclass_list", "apps_list"]
+    elif file_path == "dc_app_status_csv":
+        file_path = dc_app_status_csv
+        lock_file = dc_app_status_lock_file
+        headers = ["_time", "ip", "guid", "script_start_time", "phonehome_complete_time", "app_download_complete_time", "script_end_time", "installed_apps", "failed_apps"]
     
-    # Append the message to the CSV
-    with open(dc_serverclass_mapping, "a") as log_file:
-        current_time = int(time.time())
-        log_file.write(f"{current_time},{message}\n")
-
-def update_dc_info_csv(message):
+    while os.path.exists(lock_file):
+        time.sleep(1)
+    aquire_lock(lock_file)
     # Ensure the file exists and is accessible
-    if not os.path.exists(dc_info_csv) or os.path.getsize(dc_info_csv) == 0:
-        with open(dc_info_csv, "w") as log_file:
-            log_file.write("_time,guid,ip,private_ip,hostname,servername,os,clientname\n")
-    
-    # Append the message
-    with open(dc_info_csv, "a") as log_file:
-        current_time = int(time.time())
-        log_file.write(f"{current_time},{message}\n")  
+    if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
+        with open(file_path, "w") as log_file:
+            log_file.write(",".join(headers) + "\n")
+            current_time = int(time.time())
+            log_file.write(f"{current_time},{message}\n")
+    else:
+        # Append the message
+        with open(file_path, "a") as log_file:
+            current_time = int(time.time())
+            log_file.write(f"{current_time},{message}\n")
+    release_lock(lock_file)   
 
-def upate_dc_app_status_csv(message):
-    # Ensure the file exists and is accessible
-    if not os.path.exists(dc_app_status_csv) or os.path.getsize(dc_app_status_csv) == 0:
-        with open(dc_app_status_csv, "w") as log_file:
-            log_file.write("_time,ip,guid,script_start_time,phonehome_complete_time,app_download_complete_time,script_end_time,installed_apps,failed_apps\n")
-    
-    # Append the message
-    with open(dc_app_status_csv, "a") as log_file:
-        log_file.write(f"{message}\n")  
         

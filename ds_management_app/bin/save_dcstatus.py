@@ -3,7 +3,7 @@ import time
 from datetime import datetime
 sys.path.append(os.path.dirname(__file__))
 import json, threading
-from ds_utils import log,upate_dc_app_status_csv
+from ds_utils import log,update_csv_file
 from splunk.persistconn.application import PersistentServerConnectionApplication
 
 class DCStatusHandler(PersistentServerConnectionApplication):
@@ -47,7 +47,7 @@ class DCStatusHandler(PersistentServerConnectionApplication):
                             app_data[key]=""
                             log("ERROR",f"Error parsing datetime for key '{key}': {e}")  
                             
-            upate_dc_app_status_csv(f"{app_data['current_time']},{dc},{app_data['guid']},{app_data['script_start_time']},{app_data['phonehome_complete_time']},{app_data['app_download_complete_time']},{app_data['script_end_time']},\"{app_data['installed_apps']}\",\"{app_data['failed_apps']}\"")
+            update_csv_file("dc_app_status_csv", f"{app_data['current_time']},{dc},{app_data['guid']},{app_data['script_start_time']},{app_data['phonehome_complete_time']},{app_data['app_download_complete_time']},{app_data['script_end_time']},\"{app_data['installed_apps']}\",\"{app_data['failed_apps']}\"")
             
 
             payload["info"] = "Success"

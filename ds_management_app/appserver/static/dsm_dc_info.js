@@ -9,7 +9,7 @@ $(document).ready(function () {
 
     function fetchData(filters = {}) {
         const searchQuery = `
-| inputlookup dc_phonehome_time.csv
+            | inputlookup dc_phonehome_time.csv
             | appendpipe [|  inputlookup dc_info.csv | stats latest(servername) as servername latest(clientname) as clientname by guid ip]
             | appendpipe [|  inputlookup dc_app_status.csv | stats latest(installed_apps) as installed_apps latest(failed_apps) as failed_apps by guid ip ]
             | appendpipe [|  inputlookup dc_serverclass_mapping.csv | stats latest(serverclass_list) as serverclass_list  by guid ip ]
@@ -22,10 +22,10 @@ $(document).ready(function () {
             | eval hours = if(isnull(days) and match(time_parts, ":"), mvindex(split(time_parts, ":"), 0) . " hours ago", null()), 
                 minutes = if(hours=="00 hours ago"  and isnull(days) and match(time_parts, ":"), mvindex(split(time_parts, ":"), 1) . " minutes ago", null()), 
                 seconds = if(minutes=="00 minutes ago" and ihours=="00 hours ago" and isnull(days), mvindex(split(time_parts, ":"), 2) . " seconds ago", null())
-            |  eval minutes=if(minutes=="00 minutes ago",null(),minutes) , hours=if(hours=="00 hours ago",null(),hours) 
+            | eval minutes=if(minutes=="00 minutes ago",null(),minutes) , hours=if(hours=="00 hours ago",null(),hours) 
             | eval last_phonehome = coalesce(days, hours, minutes, seconds)
             | eval last_phonehome=if(match(last_phonehome, "^0"), ltrim(last_phonehome, "0"), last_phonehome)
-            | table hostname servername clientname ip os serverclass_list installed_apps failed_apps  last_phonehome last_phonehome_time
+            | table hostname servername clientname ip os serverclass_list installed_apps failed_apps  last_phonehome last_phonehome_time 
         `;
 
         // Apply filters

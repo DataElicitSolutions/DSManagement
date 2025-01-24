@@ -10,12 +10,14 @@ $(document).ready(function () {
     function fetchData(filters = {}) {
         const searchQuery = `
             | inputlookup dc_phonehome_time.csv
-            | appendpipe [|  inputlookup dc_info.csv | stats latest(servername) as servername latest(clientname) as clientname by guid ip]
-            | appendpipe [|  inputlookup dc_app_status.csv | stats latest(installed_apps) as installed_apps latest(failed_apps) as failed_apps by guid ip ]
-            | appendpipe [|  inputlookup dc_serverclass_mapping.csv | stats latest(serverclass_list) as serverclass_list  by guid ip ]
+            | appendpipe [|  inputlookup dc_info.csv | stats latest(servername) as servername latest(clientname) as clientname latest(_time) as app_phonehome_time by guid ip]
+            | appendpipe [|  inputlookup dc_app_status.csv | stats latest(script_end_time) as script_end_time latest(failed_apps) as failed_apps latest(_time) as app_install_time by guid ip ]
+            | appendpipe [|  inputlookup dc_serverclass_mapping.csv | stats latest(serverclass_list) as serverclass_list  latest(apps_list) as apps by guid ip ] 
+            | eval _time = coalesce(_time, app_install_time,app_phonehome_time)
             | stats latest(*) as * latest(_time) as _time by guid ip
             | search _time=*
-            | rename _time as last_phonehome_time 
+            | convert ctime(script_end_time)
+            | rename _time as last_phonehome_time script_end_time as "Last Update Time"
             | eval  duration = tostring(now()-last_phonehome_time, "duration")
             | eval days = if(match(duration, "\\+"), mvindex(split(duration, "+"), 0) . " days ago", null()), 
                   time_parts = if(match(duration, "\\+"), mvindex(split(duration, "\\+"), 1), duration)
@@ -25,7 +27,7 @@ $(document).ready(function () {
             | eval minutes=if(minutes=="00 minutes ago",null(),minutes) , hours=if(hours=="00 hours ago",null(),hours) 
             | eval last_phonehome = coalesce(days, hours, minutes, seconds)
             | eval last_phonehome=if(match(last_phonehome, "^0"), ltrim(last_phonehome, "0"), last_phonehome)
-            | table hostname servername clientname ip os serverclass_list installed_apps failed_apps  last_phonehome last_phonehome_time 
+            | table hostname servername clientname ip os serverclass_list apps failed_apps  "Last Update Time" last_phonehome last_phonehome_time
         `;
 
         // Apply filters
@@ -78,7 +80,7 @@ $(document).ready(function () {
     function sortData(column, direction) {
         console.log("Column name passed to sortData:", column); // Debug column name
 
-        const columns = ["hostname", "servername", "clientname", "ip", "os", "serverclass", "installed_apps", "failed_apps", "last_phonehome","last_phonehome_epoc"];
+        const columns = ["hostname", "servername", "clientname", "ip", "os", "serverclass", "installed_apps", "failed_apps","last_update", "last_phonehome","last_phonehome_epoc"];
         const index = columns.indexOf(column);
 
         if (index === -1) {
@@ -144,7 +146,8 @@ $(document).ready(function () {
                     <td>${row[6] || "-"}</td>
                     <td>${row[7] || "-"}</td>
                     <td>${row[8] || "-"}</td>
-                    <td class="hideColumn">${row[9] || "-"}</td>
+                    <td>${row[9] || "-"}</td>
+                    <td class="hideColumn">${row[10] || "-"}</td>
                     
                 </tr>
             `;

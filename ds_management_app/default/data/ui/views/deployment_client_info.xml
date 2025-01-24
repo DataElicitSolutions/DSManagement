@@ -50,8 +50,9 @@
                       <th data-column="ip">IP Address <span class="sort-icon">↓</span></th>
                       <th data-column="os">Operating System <span class="sort-icon">↓</span></th>
                       <th data-column="serverclass">Serverclass<span class="sort-icon">↓</span></th>
-                      <th data-column="installed_apps">Installed Apps <span class="sort-icon">↓</span></th>
+                      <th data-column="installed_apps">Apps <span class="sort-icon">↓</span></th>
                       <th data-column="failed_apps">Failed Apps <span class="sort-icon">↓</span></th>
+                      <th data-column="last_update">Last Update Time <span class="sort-icon">↓</span></th>
                       <th data-column="last_phonehome">Last Phonehome Time <span class="sort-icon">↓</span></th>
                       <th data-column="last_phonehome_epoc" class="hideColumn"><span class="sort-icon">↓</span></th>
                   </tr>

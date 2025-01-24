@@ -1,4 +1,4 @@
-import sys, os,traceback
+import sys, os,traceback,time
 sys.path.append(os.path.dirname(__file__))
 import sa_import
 import json, threading
@@ -44,7 +44,8 @@ class DCStatusHandler(PersistentServerConnectionApplication):
             uf_names["ip"]=dc
             # headers = ["guid", "ip","private_ip", "hostname", "servername", "os"]
             # unique_keys=["guid", "ip"]
-            update_csv_file("dc_info_csv",f"{uf_names['guid']},{uf_names['ip']},{uf_names['private_ip']},{uf_names['hostname']},{uf_names['servername']},{uf_names['os']},{uf_names['clientname']}")
+            current_time = int(time.time())
+            update_csv_file("dc_info_csv",f"{current_time},{uf_names['guid']},{uf_names['ip']},{uf_names['private_ip']},{uf_names['hostname']},{uf_names['servername']},{uf_names['os']},{uf_names['clientname']}")
             # store_dc_info(uf_names,headers,unique_keys,dc_info_csv)
             log("INFO",f"Stored client info: {dc}")
             required_unique_keys=[uf_names["clientname"],uf_names["ip"],uf_names["hostname"],uf_names["servername"]]

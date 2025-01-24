@@ -141,8 +141,9 @@ def get_apps_for_input(input_values, csv_file_path, os_name,uf_guid):
     with open(csv_file_path, 'r') as csvfile:
         reader = csv.DictReader(csvfile)
         apps.update(row['App'] for row in reader if row['Serverclass'] in whitelist_server_classes and row['App'] != '-')   
-        
-    message = f"{uf_guid},{','.join(input_values)},\"{','.join(whitelist_server_classes)}\",\"{','.join(apps)}\""
+    
+    current_time = int(time.time())
+    message = f"{current_time},{uf_guid},{','.join(input_values)},\"{','.join(whitelist_server_classes)}\",\"{','.join(apps)}\""
     update_csv_file("dc_serverclass_mapping", message)
     return apps
 
@@ -177,7 +178,7 @@ def update_csv_file(file_path, message):
         file_path = dc_app_status_csv
         lock_file = dc_app_status_lock_file
         headers = ["_time", "ip", "guid", "script_start_time", "phonehome_complete_time", "app_download_complete_time", "script_end_time", "installed_apps", "failed_apps"]
-    
+
     while os.path.exists(lock_file):
         time.sleep(1)
     aquire_lock(lock_file)
@@ -185,13 +186,11 @@ def update_csv_file(file_path, message):
     if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
         with open(file_path, "w") as log_file:
             log_file.write(",".join(headers) + "\n")
-            current_time = int(time.time())
-            log_file.write(f"{current_time},{message}\n")
+            log_file.write(f"{message}\n")
     else:
         # Append the message
         with open(file_path, "a") as log_file:
-            current_time = int(time.time())
-            log_file.write(f"{current_time},{message}\n")
+            log_file.write(f"{message}\n")
     release_lock(lock_file)   
 
         

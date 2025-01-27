@@ -296,7 +296,10 @@ td {
     margin-top: 15px; /* Space between loader and message */
     font-size: 16px;
     text-align: center;
-    color: blue;
+    color: greenyellow;
+    background-color: black;
+    border-radius: 10px;
+    width: 200px;
     z-index: 999; /* Ensure it is on top */
 }
 

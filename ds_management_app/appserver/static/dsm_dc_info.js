@@ -9,11 +9,11 @@ $(document).ready(function () {
 
     function fetchData(filters = {}) {
         const searchQuery = `
-            | inputlookup dc_phonehome_time.csv
-            | appendpipe [|  inputlookup dc_info.csv | stats latest(servername) as servername latest(clientname) as clientname latest(_time) as app_phonehome_time by guid ip]
+            | inputlookup dc_info.csv
+            | appendpipe [|  inputlookup dc_phonehome_time.csv | stats latest(_time) as app_phonehome_time by guid ip]
             | appendpipe [|  inputlookup dc_app_status.csv | stats latest(script_end_time) as script_end_time latest(failed_apps) as failed_apps latest(_time) as app_install_time by guid ip ]
             | appendpipe [|  inputlookup dc_serverclass_mapping.csv | stats latest(serverclass_list) as serverclass_list  latest(apps_list) as apps by guid ip ] 
-            | eval _time = coalesce(_time, app_install_time,app_phonehome_time)
+            | eval _time = coalesce(app_phonehome_time,app_install_time,_time)
             | stats latest(*) as * latest(_time) as _time by guid ip
             | search _time=*
             | eval script_end_time=strftime(script_end_time, "%Y-%m-%d %H:%M:%S")
@@ -27,9 +27,8 @@ $(document).ready(function () {
             | eval minutes=if(minutes=="00 minutes ago",null(),minutes) , hours=if(hours=="00 hours ago",null(),hours) 
             | eval last_phonehome = coalesce(days, hours, minutes, seconds)
             | eval last_phonehome=if(match(last_phonehome, "^0"), ltrim(last_phonehome, "0"), last_phonehome)
-            | table hostname servername clientname ip os serverclass_list apps failed_apps  "Last Update Time" last_phonehome last_phonehome_time
+            | table hostname servername clientname ip os serverclass_list apps failed_apps  "Last Update Time" last_phonehome last_phonehome_time        
         `;
-
         // Apply filters
         let filterString = "| search ";
         if (filters.hostname) filterString += ` hostname=${filters.hostname}`;

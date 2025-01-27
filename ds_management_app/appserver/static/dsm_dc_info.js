@@ -16,7 +16,7 @@ $(document).ready(function () {
             | eval _time = coalesce(_time, app_install_time,app_phonehome_time)
             | stats latest(*) as * latest(_time) as _time by guid ip
             | search _time=*
-            | convert ctime(script_end_time)
+            | eval script_end_time=strftime(script_end_time, "%Y-%m-%d %H:%M:%S")
             | rename _time as last_phonehome_time script_end_time as "Last Update Time"
             | eval  duration = tostring(now()-last_phonehome_time, "duration")
             | eval days = if(match(duration, "\\+"), mvindex(split(duration, "+"), 0) . " days ago", null()), 
@@ -56,7 +56,7 @@ $(document).ready(function () {
 
             searchManager.startSearch();
 
-            tbody.append('<tr><td colspan="9">No results found</td></tr>');
+            tbody.append('<tr><td colspan="10">No results found</td></tr>');
             $("#pagination-info, #pagination-info-top").text("No pages available");
             $("#prev-page, #prev-page-top").prop("disabled", true);
             $("#next-page, #next-page-top").prop("disabled", true);

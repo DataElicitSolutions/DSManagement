@@ -132,17 +132,6 @@ func SetDCParameter() {
 				if err != nil {
 					max_retries = 5
 				}
-
-			}
-		}
-		if strings.Contains(line, ds_pulldelay) {
-			parts := strings.Split(line, "=")
-			err = nil
-			if len(parts) > 0 {
-				pullDelay, err = strconv.Atoi(strings.TrimSpace(parts[len(parts)-1]))
-				if err != nil {
-					pullDelay = 600
-				}
 			}
 		}
 	}

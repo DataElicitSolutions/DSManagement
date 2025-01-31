@@ -60,18 +60,6 @@ func getFileModTime(filePath string) time.Time {
 	return info.ModTime()
 }
 
-// checkPullDelay validates if enough time has passed since the last run
-func checkPullDelay() {
-	if _, err := os.Stat(lastRunFile); err == nil {
-		lastPullTimeBytes, _ := os.ReadFile(lastRunFile)
-		lastPullTime, _ := strconv.ParseInt(string(lastPullTimeBytes), 10, 64)
-		if time.Since(time.Unix(lastPullTime, 0)).Seconds() < float64(pullDelay) {
-			logToFile("Last pull was within the delay period. Exiting...")
-			os.Exit(0)
-		}
-	}
-}
-
 // markScriptRunning creates a lock file
 func markScriptRunning() {
 	_, _ = os.Create(lockFile)

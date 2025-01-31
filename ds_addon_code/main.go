@@ -24,7 +24,6 @@ var (
 	final_apps_download_list   string
 	instance_cfg_path          string
 	splunk_binary_name         string
-	pullDelay                  int
 	dsIP                       = ""
 	phoneHomeUrl               string
 	phoneHomeUrlStatic         string
@@ -46,7 +45,6 @@ var (
 	script_end_time            string
 	current_app_name           = "dc_app"
 	ds_ui_url                  = "ds_ui_url"
-	ds_pulldelay               = "pulldelay"
 	ds_maxretries              = "max_retries"
 	conf_file_name             = "dc.conf"
 	download_url               string
@@ -63,7 +61,7 @@ func init_variable() error {
 
 	scriptPath := filepath.Dir(ex)
 	splunkHome = filepath.Join(scriptPath, "..", "..", "..", "..")
-	scriptLogFile = filepath.Join(splunkHome, "var", "log", "splunk", "linux_dc_script.log")
+	scriptLogFile = filepath.Join(splunkHome, "var", "log", "splunk", "dc_script.log")
 	lockFile = filepath.Join(splunkHome, "var", "run", "data", current_app_name, "dc_script_running.lock")
 	lastRunFile = filepath.Join(splunkHome, "var", "run", "data", current_app_name, "dc_last_successful_pull.time")
 	outputPath = filepath.Join(splunkHome, "var", "run", "data", current_app_name, "apps")
@@ -131,7 +129,6 @@ func main() {
 	}
 
 	checkIfScriptRunning()
-	checkPullDelay()
 	markScriptRunning()
 	defer markScriptFinished()
 

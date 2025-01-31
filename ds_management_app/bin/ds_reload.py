@@ -56,6 +56,7 @@ def process_row(row):
             log("WARN",f"Ignoring UF {row['hostname']} due to outdated time: {row['_time']}")
     except Exception as e:
         log("ERROR", f"Error processing row: {row} - {str(e)}")
+        log("ERROR",traceback.format_exc())
         splunk.Intersplunk.outputResults([{"status":"error","_raw": f"Error processing row: {row} - {str(e)}"}])
         
 
@@ -95,6 +96,7 @@ def copy_files_to_tmp_location():
     except Exception as e:
         log("ERROR", "Error in deployment server reload")
         log("ERROR", str(e))
+        log("ERROR",traceback.format_exc())
         splunk.Intersplunk.generateErrorResults([{"status":"error", "_raw": f'Error: {str(e)}', "summary":RELOAD_SUMMARY }])
 
     finally:
@@ -106,15 +108,13 @@ def copy_files_to_tmp_location():
 
 @Configuration()
 class ReloadDS(GeneratingCommand):
-    dsIP = Option(require=False)
-    repositoryLocation=Option(require=False)
-    phonehome=Option(require=False)
-    pullDelay=Option(require=False)
+    softReload=Option(require=False)
 
     def generate(self):
         try:
             log("INFO", "Reload deployment server is in progress...")
-            compress_app_update_checkpoint()
+            if self.softReload.lower()!="true":
+                compress_app_update_checkpoint()
             extrace_csv()
             create_machine_types_filter_file()
             copy_files_to_tmp_location()
@@ -123,8 +123,8 @@ class ReloadDS(GeneratingCommand):
         
         except Exception as e:
             log("ERROR", "Error in deployment server reload")
-            log("ERROR",traceback.format_exc())
             log("ERROR", str(e))
+            log("ERROR",traceback.format_exc())
             yield {"status":"error", "_raw": f'Error: {str(e)}', "summary":RELOAD_SUMMARY }
 
 

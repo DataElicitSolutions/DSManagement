@@ -23,8 +23,8 @@ $(document).ready(function () {
                   time_parts = if(match(duration, "\\+"), mvindex(split(duration, "\\+"), 1), duration)
             | eval hours = if(isnull(days) and match(time_parts, ":"), mvindex(split(time_parts, ":"), 0) . " hours ago", null()), 
                 minutes = if(hours=="00 hours ago"  and isnull(days) and match(time_parts, ":"), mvindex(split(time_parts, ":"), 1) . " minutes ago", null()), 
-                seconds = if(minutes=="00 minutes ago" and ihours=="00 hours ago" and isnull(days), mvindex(split(time_parts, ":"), 2) . " seconds ago", null())
-            | eval minutes=if(minutes=="00 minutes ago",null(),minutes) , hours=if(hours=="00 hours ago",null(),hours) 
+                seconds = if(minutes=="00 minutes ago" and hours=="00 hours ago" and isnull(days), mvindex(split(time_parts, ":"), 2) . " seconds ago", null())
+            | eval minutes=if(minutes=="00 minutes ago",null(),minutes) , hours=if(hours=="00 hours ago",null(),hours) , seconds=if(seconds=="00 seconds ago","a seconds ago",seconds)
             | eval last_phonehome = coalesce(days, hours, minutes, seconds)
             | eval last_phonehome=if(match(last_phonehome, "^0"), ltrim(last_phonehome, "0"), last_phonehome)
             | table hostname servername clientname ip os serverclass_list apps failed_apps  "Last Update Time" last_phonehome last_phonehome_time        

@@ -27,7 +27,6 @@ class SetupDS(GeneratingCommand):
     dsIP = Option(require=False)
     repositoryLocation=Option(require=False)
     phonehome=Option(require=False)
-    pullDelay=Option(require=False)
 
     def generate(self):
 
@@ -79,7 +78,6 @@ class SetupDS(GeneratingCommand):
                 if 'general' not in config:
                     config['general'] = {}
                 config['general']['ds_ui_url'] = self.dsIP
-                config['general']['pulldelay'] = self.pullDelay
 
                 with open(dc_conf_path, 'w') as configfile:
                     config.write(configfile)
@@ -110,7 +108,6 @@ class SetupDS(GeneratingCommand):
                 store_setup_info['source_repositoryLocation'] = source_repositoryLocation
                 store_setup_info['dest_repositoryLocation'] = self.repositoryLocation
                 store_setup_info['phonehome'] = self.phonehome
-                store_setup_info['pullDelay'] = self.pullDelay
                 with open(store_setup_info_path, 'w') as f:
                     json.dump(store_setup_info, f)
                     log("INFO", "Created checkpoint for all files")

@@ -1,4 +1,4 @@
-import os, shutil,re, csv, hashlib, tarfile, configparser,time
+import os, shutil,re, csv, hashlib, tarfile, configparser,time, traceback
 from splunk.clilib.bundle_paths import make_splunkhome_path
 import splunk.appserver.mrsparkle.lib.util as splunk_lib_util
 from ds_utils import log, create_machine_types_filter_file
@@ -84,6 +84,7 @@ def copy_apps(override=False):
             
     except Exception as e:
         log("ERROR",f"Error copying Deployment apps: {e}")
+        log("ERROR",traceback.format_exc())
         
         
 def read_ds_config():
@@ -114,7 +115,9 @@ def read_ds_config():
         }
 
     except Exception as e:
+        log("ERROR",traceback.format_exc())
         return {"error": f"An error occurred while reading the configuration: {str(e)}"}
+    
 
 # Function to convert .conf file to .csv
 def convert_conf_to_csv(override):
@@ -195,6 +198,7 @@ def convert_conf_to_csv(override):
             
     except Exception as e:
         log("ERROR", f"Error converting .conf file to CSV: {e}")
+        log("ERROR",traceback.format_exc())
         
 
 # Function to calculate checksum of all files in a directory
@@ -229,6 +233,7 @@ def get_reload_time():
         return 0
     except ValueError:
         log("INFO",f"Error: Invalid content in {reload_time_txt}. Cannot convert to integer.")
+        log("ERROR",traceback.format_exc())
         return 0
 
 def set_reload_time():
@@ -310,6 +315,7 @@ def push_script():
     paths = read_ds_config()
     src_repository_location = paths['source_repositoryLocation']
     
+    
     # Ensure the deployment directory exists
     os.makedirs(ds_setup_app_dir, exist_ok=True)
     os.makedirs(src_repository_location, exist_ok=True)
@@ -332,10 +338,11 @@ def push_script():
                     tar.extractall(path=src_repository_location)
                     log("INFO",f"Extracted {file_name} to {src_repository_location}")
                            
-
+      
         log("INFO","Successfully added setup app for DS")
                   
         
     except Exception as e:
         log("ERROR", f"Error while adding setup apps :{e}")
+        log("ERROR",traceback.format_exc())
 

@@ -165,8 +165,8 @@ def extrace_csv():
             except FileNotFoundError:
                 log("WARN",f"Destination CSV file not found: {dest_csv_path}")
             except Exception as e:
-                log("ERROR",traceback.format_exc())
                 log("ERROR", f"Error in csv extraction: {e}")
+                log("ERROR",traceback.format_exc())
         else:
             updated_rows.append(row)
                 

@@ -42,24 +42,15 @@ class DCStatusHandler(PersistentServerConnectionApplication):
             log("INFO", "Getting phonehome from deployment client: "+str(dc))
             uf_names={name[0]:name[1] for name in uf_name}
             uf_names["ip"]=dc
-            # headers = ["guid", "ip","private_ip", "hostname", "servername", "os"]
-            # unique_keys=["guid", "ip"]
             current_time = int(time.time())
             update_csv_file("dc_info_csv",f"{current_time},{uf_names['guid']},{uf_names['ip']},{uf_names['private_ip']},{uf_names['hostname']},{uf_names['servername']},{uf_names['os']},{uf_names['clientname']}")
-            # store_dc_info(uf_names,headers,unique_keys,dc_info_csv)
             log("INFO",f"Stored client info: {dc}")
             required_unique_keys=[uf_names["clientname"],uf_names["ip"],uf_names["hostname"],uf_names["servername"]]
             required_apps = get_apps_for_input(required_unique_keys, runtime_serverclass, uf_names['os'],uf_names['guid'])
             
-            ### New Modification Start ###
-            # payload=get_apps_checkpoint(list(required_apps))
-            # log("INFO","List of apps is ready. Sending to DC...")
-            
             apps_with_checkpoint=get_apps_checkpoint(list(required_apps))
             log("INFO","List of apps is ready. Sending to DC...")
-            ### New Modification End ###
-            
-            ### New Changes Start ###
+
             os.makedirs(apps_download_list_dir, exist_ok=True)
             make_name= f"{uf_names['guid']}__{uf_names['private_ip']}__{uf_names['hostname']}__{uf_names['os']}.txt"
             client_file_name = os.path.join(apps_download_list_dir,make_name)
@@ -68,7 +59,7 @@ class DCStatusHandler(PersistentServerConnectionApplication):
             with open(client_file_name, "w") as log_file:
                 for key, value in apps_with_checkpoint.items():
                     log_file.write(f"{key},{value}\n")
-            ### New Changes Complete ###
+
             payload={}
             payload["info"] = "Success"
             payload["status"] = 200

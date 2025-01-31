@@ -1,4 +1,4 @@
-import csv, sys, os, json, configparser
+import csv, sys, os, json, configparser, traceback
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "lib"))
 from ds_utils import log
 from splunklib.searchcommands import dispatch, GeneratingCommand, Configuration, Option, validators
@@ -32,6 +32,7 @@ def get_apps_present_in_json(path):
         return json.dumps({"error": f"The path '{path}' does not exist."}, indent=4)
     except Exception as e:
         print(f"An unexpected error occurred: {str(e)}")
+        log("ERROR",traceback.format_exc())
         return json.dumps({"error": str(e)}, indent=4)
  
 @Configuration()
@@ -171,6 +172,7 @@ class UpdateDSConfig(GeneratingCommand):
             # Handle errors and return error result to JavaScript
             log("ERROR", f"Error in update configuration")
             result = {"status": "error", "message": f"An error occurred: {str(e)}"}
+            log("ERROR",traceback.format_exc())
             yield result
 
 

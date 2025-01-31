@@ -1,26 +1,30 @@
-import sys,time,os
-import traceback
-from ds_utils import log  
+import sys,traceback
+from ds_utils import log,dc_info_lock_file,dc_app_status_lock_file,dc_phonehome_time_lock_file,dc_serverclass_mapping_lock_file
 from splunklib.searchcommands import dispatch, GeneratingCommand, Configuration
 import splunklib.client as client
 import splunklib.results as results
-from ds_utils import log,aquire_lock,release_lock,dc_info_lock_file,dc_app_status_lock_file,dc_phonehome_time_lock_file,dc_serverclass_mapping_lock_file
+from filelock import FileLock
 
 
 def run_locked_search(service, query, lock_file):
     """
     Executes a search query with file locking to ensure concurrency control.
     """
-    while os.path.exists(lock_file):
-        time.sleep(1)  # Wait for the lock file to be released
+    lock = FileLock(lock_file)
     try:
-        aquire_lock(lock_file)
-        search_results = service.jobs.oneshot(query)
-        return search_results
-    finally:
-        release_lock(lock_file)
+        with lock.acquire(timeout=300):  # Wait up to 10 seconds for the lock
+            search_results = service.jobs.oneshot(query)
+            return search_results
+            
+    except TimeoutError:
+        log("ERROR", f"Timeout occurred while waiting for lock: {lock_file}")
+        log("ERROR", traceback.format_exc())
+    except Exception as e:
+        log("ERROR", f"An error occurred during search execution: {str(e)}")
+        log("ERROR", traceback.format_exc())
+    
 
-
+    
 @Configuration()
 class DSOptimize(GeneratingCommand):
 
@@ -86,6 +90,3 @@ class DSOptimize(GeneratingCommand):
 
 
 dispatch(DSOptimize, sys.argv, sys.stdin, sys.stdout, __name__)
-
-
-

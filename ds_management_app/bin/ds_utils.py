@@ -1,18 +1,20 @@
-import os,csv,re
+import os,csv,re,traceback,time
+import sa_import
+from filelock import FileLock
 from splunk.clilib.bundle_paths import make_splunkhome_path
 import splunk.appserver.mrsparkle.lib.util as splunk_lib_util
-import time
 
 checkpoint_csv = splunk_lib_util.make_splunkhome_path(['var', 'run', 'ds_management_app', 'lookups', 'app_checkpoint.csv'])
 dc_info_csv = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_management_app', 'lookups', 'dc_info.csv'])
 dc_serverclass_mapping = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_management_app', 'lookups', 'dc_serverclass_mapping.csv'])
 dc_app_status_csv = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_management_app', 'lookups', 'dc_app_status.csv'])
 
-# Lock Files
+# Lock files
 dc_info_lock_file = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_management_app', 'lookups', 'dc_info_lock_file.txt'])
 dc_app_status_lock_file = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_management_app', 'lookups', 'dc_app_status_lock_file.txt'])
 dc_phonehome_time_lock_file = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_management_app', 'lookups', 'dc_phonehome_time_lock_file.txt'])
 dc_serverclass_mapping_lock_file = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_management_app', 'lookups', 'dc_serverclass_mapping_lock_file.txt'])
+
 
 # CSV for the machineTypesFilter
 machineTypesFilter_input_file = splunk_lib_util.make_splunkhome_path(["var", "run", "ds_management_app", "lookups", "serverclass.csv"])
@@ -32,13 +34,6 @@ def dc_historical_log(level, message):
     with open(client_log_file_path, "a") as log_file:
         log_file.write(f"\n{level}: {message}")
         
-def aquire_lock(lock_file_name):
-    with open(lock_file_name, "w") as lock_file:
-        pass
-    
-def release_lock(lock_file_name): 
-    if os.path.exists(lock_file_name):
-        os.remove(lock_file_name)
 
 def create_machine_types_filter_file():
     """
@@ -62,6 +57,7 @@ def create_machine_types_filter_file():
         log("INFO",f"Successfully build lookup for machineTypesFilter.")
     except Exception as e:
         log("ERROR",f"An error occurred while building machineTypesFilter lookup:{e}")
+        log("ERROR",traceback.format_exc())
 
 def check_machineTypesFilter(machineTypesFilter_file_path, server_class, os_name):
     try:
@@ -89,10 +85,13 @@ def check_machineTypesFilter(machineTypesFilter_file_path, server_class, os_name
                     return "remove"
             
             # If Serverclass is not found in the CSV
-            log("INFO", f"Server class '{server_class}' not found in the CSV. Returning 'No action'.")
+            # log("INFO", f"Server class '{server_class}' not found in the CSV. Returning 'No action'.") 
             return "No action"
     except Exception as e:
+        log("ERROR",f"Error: {e}")
+        log("ERROR",traceback.format_exc())
         return f"Error: {e}"
+    
 
 def get_apps_for_input(input_values, csv_file_path, os_name,uf_guid):
     
@@ -179,18 +178,20 @@ def update_csv_file(file_path, message):
         lock_file = dc_app_status_lock_file
         headers = ["_time", "ip", "guid", "script_start_time", "phonehome_complete_time", "app_download_complete_time", "script_end_time", "installed_apps", "failed_apps"]
 
-    while os.path.exists(lock_file):
-        time.sleep(1)
-    aquire_lock(lock_file)
-    # Ensure the file exists and is accessible
-    if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
-        with open(file_path, "w") as log_file:
-            log_file.write(",".join(headers) + "\n")
-            log_file.write(f"{message}\n")
-    else:
-        # Append the message
-        with open(file_path, "a") as log_file:
-            log_file.write(f"{message}\n")
-    release_lock(lock_file)   
-
-        
+    lock = FileLock(lock_file)
+    while True:
+        try:
+            with lock.acquire(timeout=60):  # Timeout after 10 seconds
+                # Ensure the file exists and is accessible
+                if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
+                    with open(file_path, "w") as log_file:
+                        log_file.write(",".join(headers) + "\n")
+                        log_file.write(f"{message}\n")
+                else:
+                    # Append the message
+                    with open(file_path, "a") as log_file:
+                        log_file.write(f"{message}\n")
+                break
+        except TimeoutError:
+            log("ERROR",f"Could not acquire lock for {file_path} within the timeout period.")
+            log("ERROR",traceback.format_exc())

@@ -26,10 +26,6 @@
                       <label for="phonehome"><b>PhoneHome Interval In Secs</b></label>
                       <input type="text" id="phonehome" placeholder="Enter integer value in secound" value="60"/>
                   </div>
-                  <div class="form-group">
-                      <label for="pullDelay"><b>Freeze Pull (skip pull after successful app update)</b></label>
-                      <input type="text" id="pullDelay" placeholder="Enter integer value in secound" value="300"/>
-                  </div>
                   <button type="submit" id="submit">Save</button>
                   <div id="status_message" style="margin-top: 10px;"></div>
           </div>

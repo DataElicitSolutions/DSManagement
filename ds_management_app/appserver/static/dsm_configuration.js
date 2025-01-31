@@ -70,7 +70,6 @@ require([
                 $("#dsURL").val(data.dsIP);
                 $("#repoLocation").val(data.dest_repositoryLocation);
                 $("#phonehome").val(data.phonehome);
-                $("#pullDelay").val(data.pullDelay);
         
             } 
             endLoader()
@@ -84,7 +83,6 @@ require([
         var dsURL = $("#dsURL").val().trim();
         var repoLocation = $("#repoLocation").val().trim();
         var phonehome = $("#phonehome").val().trim();
-        var pullDelay = $("#pullDelay").val().trim();
 
         // Check for missing values
         if (!dsURL) {
@@ -99,27 +97,19 @@ require([
             alert("Please provide a value for Phonehome Interval.");
             return;
         }
-        if (!pullDelay) {
-            alert("Please provide a value for Freeze Pull.");
-            return;
-        }
 
-        // Check if phonehome and pullDelay are integers
+
+        // Check if phonehome is integers
         if (isNaN(phonehome) || parseInt(phonehome) != phonehome) {
             alert("Phonehome must be an integer.");
-            return;
-        }
-        if (isNaN(pullDelay) || parseInt(pullDelay) != pullDelay) {
-            alert("Freeze Pull must be an integer.");
             return;
         }
 
         // Convert to integers
         phonehome = parseInt(phonehome);
-        pullDelay = parseInt(pullDelay);
 
         customCommandSearch = new SearchManager({
-            search: `| dssetup dsIP="${dsURL}", phonehome="${phonehome}", pullDelay="${pullDelay}", repositoryLocation="${repoLocation}"`,
+            search: `| dssetup dsIP="${dsURL}", phonehome="${phonehome}", repositoryLocation="${repoLocation}"`,
             preview: true,
             cache: false,
             autostart: false  

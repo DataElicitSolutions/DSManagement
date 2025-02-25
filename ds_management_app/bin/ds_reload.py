@@ -65,6 +65,11 @@ def copy_files_to_tmp_location():
     
     try:
         # Copy the CSV file to the temporary location
+        os.makedirs(os.path.dirname(dc_info_csv), exist_ok=True) 
+        if not os.path.exists(dc_info_csv):
+            with open(dc_info_csv, "w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow(["_time","guid","ip","private_ip","hostname","servername","os","clientname"]) 
         shutil.copy(dc_info_csv, temp_dc_info_csv)
         # log("INFO", f"Copied {dc_info_csv} to {temp_dc_info_csv}")
         log("INFO","Copied all UFs data to temporary location")
@@ -108,7 +113,7 @@ def copy_files_to_tmp_location():
 
 @Configuration()
 class ReloadDS(GeneratingCommand):
-    softReload=Option(require=False)
+    softReload=Option(require=False,default="False")
 
     def generate(self):
         try:

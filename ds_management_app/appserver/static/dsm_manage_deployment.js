@@ -94,6 +94,7 @@ require([
         }
         searchManager.startSearch();
         // searchManager.off("search:done")
+        var no_serverclass=0
         searchManager.on("search:done", function () {
             const results = searchManager.data("results", { count: 0 });
             results.on("data", function () {
@@ -101,7 +102,7 @@ require([
 
                 const $dropdown = $(dropdownId);
                 $dropdown.empty().append(`<option value="">${defaultOptionText}</option>`);
-
+                
                 // Special case for #appDropdown to handle apps JSON structure
                 if (dropdownId === "#appDropdown") {
                     const appData = rows[0][1];
@@ -117,17 +118,24 @@ require([
                         rows.forEach(row => {
                             $dropdown.append(`<option value="${row[0]}">${row[0]}</option>`);
                         });
+                        no_serverclass=1
                     } else {
                         $dropdown.append(`<option value="">No Results Found</option>`);
                     }
                 }
+                
                 if(selected_value!=""){
                     $dropdown.val(selected_value);
                     $("#modifyButton").trigger("click");
                 }
             });
+            if(no_serverclass==0){
+                console.log(`<option value="">No Results Found</option>`)
+                $(dropdownId).empty().append(`<option value="">No ServerClass Found</option>`);
+            }
             searchManager = null
         });
+        
         // Optionally, handle any search errors
         searchManager.on("search:error", function() {
             $("#status_message").text("An error occurred while loading Serverclass")
@@ -230,15 +238,17 @@ require([
                         var results = updateDSSearch.data("results", { count: 0 }); // Get all rows
                         results.on("data", function() {
                             const rows = results.data()?.rows;
+                            msg=""
                             if (rows[0][0] === "success") { 
                                 populateDropdown( "#dropdown", "Select a Serverclass",inputValue);
-                                
-                                $("#status_message").text("Serverclass added successfully !!!");                     
+                                msg="Serverclass added successfully !!!"
+                                $("#status_message").text(msg);                     
                             } else {
                                 // Handle failure case
-                                $("#status_message").text("Failed to add Serverclass. Please try again.")
+                                msg="Failed to add Serverclass. Please try again."
+                                $("#status_message").text(msg)
                             }
-                            endLoader(); 
+                            endLoader(msg); 
                             inputValue = null
                             updateDSSearch=null
                         });
@@ -308,13 +318,7 @@ require([
             $("#add_app").css("display", "block");
             $("#submit_panel").css("display", "block");
             $("#add_client").css("display", "none");
-            // defaultTokenModel.set("add_app","true"); 
-            // defaultTokenModel.unset("add_client"); 
-            // defaultTokenModel.set("submit_panel","true"); 
-            // submittedTokenModel.set("add_app","true"); 
-            // submittedTokenModel.unset("add_client"); 
-            // submittedTokenModel.set("submit_panel","true"); 
-            
+        
             $("#tab1").addClass("active");
             $("#tab2").removeClass("active");
 

@@ -10,10 +10,10 @@ dc_serverclass_mapping = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'd
 dc_app_status_csv = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_management_app', 'lookups', 'dc_app_status.csv'])
 
 # Lock files
-dc_info_lock_file = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_management_app', 'lookups', 'dc_info_lock_file.txt'])
-dc_app_status_lock_file = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_management_app', 'lookups', 'dc_app_status_lock_file.txt'])
-dc_phonehome_time_lock_file = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_management_app', 'lookups', 'dc_phonehome_time_lock_file.txt'])
-dc_serverclass_mapping_lock_file = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_management_app', 'lookups', 'dc_serverclass_mapping_lock_file.txt'])
+dc_info_lock_file = splunk_lib_util.make_splunkhome_path(['var', 'run', 'ds_management_app', 'lookups', 'dc_info_lock_file.txt'])
+dc_app_status_lock_file = splunk_lib_util.make_splunkhome_path(['var', 'run', 'ds_management_app', 'lookups', 'dc_app_status_lock_file.txt'])
+dc_phonehome_time_lock_file = splunk_lib_util.make_splunkhome_path(['var', 'run', 'ds_management_app', 'lookups', 'dc_phonehome_time_lock_file.txt'])
+dc_serverclass_mapping_lock_file = splunk_lib_util.make_splunkhome_path(['var', 'run', 'ds_management_app', 'lookups', 'dc_serverclass_mapping_lock_file.txt'])
 
 
 # CSV for the machineTypesFilter

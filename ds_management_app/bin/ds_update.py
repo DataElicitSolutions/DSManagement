@@ -78,7 +78,11 @@ class UpdateDSConfig(GeneratingCommand):
                     ("where_equals", self.blacklistWhereEquals)
                 ]
             }
-
+            os.makedirs(os.path.dirname(serverclass_csv), exist_ok=True) 
+            if not os.path.exists(serverclass_csv):
+                with open(serverclass_csv, "w", newline="") as f:
+                    writer = csv.writer(f)
+                    writer.writerow(["Serverclass", "App", "Key", "Value"]) 
             # Read the existing CSV
             with open(serverclass_csv, mode='r') as file:
                 reader = csv.reader(file)

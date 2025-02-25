@@ -37,16 +37,18 @@ class DCStatusHandler(PersistentServerConnectionApplication):
             log("INFO", f"Getting call from deployment client: {str(dc)} - to save app information")
             app_data={name[0]:name[1] for name in dc_info}
 
+            # for key in app_data:
+            #     if key in ["current_time","script_start_time", "phonehome_complete_time", "app_download_complete_time", "script_end_time"]:            
+            #         if app_data[key]:  # Check if the value is not empty or None
+            #             try:
+            #                 dt_object = datetime.strptime(app_data[key], "%Y-%m-%d %H:%M:%S")
+            #                 app_data[key] = int(time.mktime(dt_object.timetuple()))
+            #             except ValueError as e:
+            #                 app_data[key]=""
+            #                 log("ERROR",f"Error parsing datetime for key '{key}': {e}")  
             for key in app_data:
-                if key in ["current_time","script_start_time", "phonehome_complete_time", "app_download_complete_time", "script_end_time"]:            
-                    if app_data[key]:  # Check if the value is not empty or None
-                        try:
-                            dt_object = datetime.strptime(app_data[key], "%Y-%m-%d %H:%M:%S")
-                            app_data[key] = int(time.mktime(dt_object.timetuple()))
-                        except ValueError as e:
-                            app_data[key]=""
-                            log("ERROR",f"Error parsing datetime for key '{key}': {e}")  
-                            
+                app_data[key] = app_data.get(key, "")  
+                                
             update_csv_file("dc_app_status_csv", f"{app_data['current_time']},{dc},{app_data['guid']},{app_data['script_start_time']},{app_data['phonehome_complete_time']},{app_data['app_download_complete_time']},{app_data['script_end_time']},\"{app_data['installed_apps']}\",\"{app_data['failed_apps']}\"")
             
 

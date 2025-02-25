@@ -19,7 +19,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.22.10'
+          go-version: '1.22.12'
       
       - name: started creating binary
         run: cd ds_addon_code && chmod +x binary.sh  && ./binary.sh

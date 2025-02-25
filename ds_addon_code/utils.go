@@ -18,13 +18,18 @@ import (
 func logToFile(message string) {
 	logFile, err := os.OpenFile(scriptLogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		log.Fatalf("Failed to open log file: %v", err)
+		log.Fatalf("Failed to open log %s file: %v", scriptLogFile, err)
+		markScriptFinished()
 		os.Exit(0)
 	}
 	defer logFile.Close()
 
 	log.SetOutput(logFile)
 	log.Println(message)
+}
+
+func getCurrentTime() string {
+	return fmt.Sprintf("%v", time.Now().Unix())
 }
 
 func sleepRandomTime() {
@@ -62,12 +67,24 @@ func getFileModTime(filePath string) time.Time {
 
 // markScriptRunning creates a lock file
 func markScriptRunning() {
-	_, _ = os.Create(lockFile)
+	lockFileRef, err := os.OpenFile(lockFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatalf("Failed to creating lock file: %v", err)
+		markScriptFinished()
+		os.Exit(0)
+	}
+	defer lockFileRef.Close()
+	pid := os.Getpid()
+	lockFileRef.Write([]byte(strconv.Itoa(pid)))
+	return
 }
 
 // markScriptFinished removes the lock file
 func markScriptFinished() {
-	_ = os.Remove(lockFile)
+	err := os.Remove(lockFile)
+	if err != nil {
+		logToFile(fmt.Sprintf("Error while removing lockfile %v", err))
+	}
 }
 
 // updateLastSuccessfulPull updates the last successful pull timestamp
@@ -80,14 +97,14 @@ func updateLastSuccessfulPull() {
 func calculateChecksum(filePath string) string {
 	file, err := os.Open(filePath)
 	if err != nil {
-		logToFile(fmt.Sprintf("Failed to open file: %v", err))
+		logToFile(fmt.Sprintf("Failed to open %s file: %v for checksum", filePath, err))
 		return ""
 	}
 	defer file.Close()
 
 	hash := md5.New()
 	if _, err := io.Copy(hash, file); err != nil {
-		logToFile(fmt.Sprintf("Failed to calculate checksum: %v", err))
+		logToFile(fmt.Sprintf("Failed to calculate checksum for %s file: %v", filePath, err))
 		return ""
 	}
 	return hex.EncodeToString(hash.Sum(nil))

@@ -97,9 +97,11 @@ func restartSplunk() {
 	cmd.Stderr = &std_err
 	if err := cmd.Run(); err != nil {
 		logToFile(fmt.Sprintf("Failed to restart Splunk: %s, %v", std_err.String(), err))
+		markScriptFinished()
 		os.Exit(1)
 	}
 	logToFile("Restart Successful")
+	markScriptFinished()
 }
 
 func SetDCParameter() {

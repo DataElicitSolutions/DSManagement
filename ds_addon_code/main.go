@@ -6,10 +6,8 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
-	"time"
 )
 
 var (
@@ -56,6 +54,7 @@ func init_variable() error {
 	// Initialize necessary variables
 	ex, err := os.Executable()
 	if err != nil {
+		fmt.Printf("Error while initializing variables %v", err)
 		return err
 	}
 
@@ -69,7 +68,7 @@ func init_variable() error {
 	appsDownloadList = filepath.Join(splunkHome, "var", "run", "data", current_app_name)
 	instance_cfg_path = filepath.Join(splunkHome, "etc", "instance.cfg")
 
-	OS = path.Base(ex)
+	OS = filepath.Base(ex)
 	OS = strings.TrimPrefix(OS, "dc_")
 	if strings.Contains(OS, "windows") {
 		OS = strings.TrimSuffix(OS, ".exe")
@@ -91,7 +90,7 @@ func init_variable() error {
 	if _, err := os.Stat(appsDownloadList); os.IsNotExist(err) {
 		logToFile(fmt.Sprintf("Directory %s does not exist. Creating it...", appsDownloadList))
 		if err := os.MkdirAll(appsDownloadList, os.ModePerm); err != nil {
-			logToFile(fmt.Sprintf("Failed to create directory: %v", err))
+			logToFile(fmt.Sprintf("Failed to create %s directory: %v", appsDownloadList, err))
 			os.Exit(1)
 		}
 	} else {
@@ -111,8 +110,17 @@ func init_variable() error {
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 
+	err := init_variable()
+	if err != nil {
+		logToFile(fmt.Sprintf("Error while initializing variable %s", err.Error()))
+		os.Exit(1)
+	}
+
 	if scanner.Scan() {
 		sessionKey = scanner.Text()
+		if strings.Contains(OS, "windows") {
+			sessionKey = strings.Trim(strings.TrimSpace(sessionKey), "\"")
+		}
 	}
 
 	if sessionKey == "" {
@@ -120,17 +128,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	script_start_time = time.Now().Format("2006-01-02 15:04:05")
-
-	err := init_variable()
-	if err != nil {
-		logToFile(fmt.Sprintf("Error while initializing variable %s", err.Error()))
-		os.Exit(1)
-	}
+	script_start_time = getCurrentTime()
 
 	checkIfScriptRunning()
 	markScriptRunning()
-	defer markScriptFinished()
 
 	logToFile("Pulling application...")
 	logToFile("UF Info : UUID   - " + GUID)
@@ -159,7 +160,7 @@ func main() {
 			if http_status {
 				http_status = doHTTPGETRequest(phoneHomeUrlStatic, final_apps_download_list)
 				if http_status {
-					phonehome_complete_time := time.Now().Format("2006-01-02 15:04:05")
+					phonehome_complete_time := getCurrentTime()
 					logToFile(fmt.Sprintf("Phonehome call completed successfully at %v", phonehome_complete_time))
 					success = true
 					break
@@ -182,12 +183,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	phonehome_complete_time = time.Now().Format("2006-01-02 15:04:05")
+	phonehome_complete_time = getCurrentTime()
 
 	if _, err := os.Stat(outputPath); os.IsNotExist(err) {
 		logToFile(fmt.Sprintf("Directory %s does not exist. Creating it...", outputPath))
 		if err := os.MkdirAll(outputPath, os.ModePerm); err != nil {
-			logToFile(fmt.Sprintf("Failed to create directory: %v", err))
+			logToFile(fmt.Sprintf("Failed to create %s directory: %v", outputPath, err))
+			markScriptFinished()
 			os.Exit(1)
 		}
 	} else {
@@ -196,7 +198,7 @@ func main() {
 
 	file, err := os.Open(final_apps_download_list)
 	if err != nil {
-		logToFile(fmt.Sprintf("Failed to open file: %v", err))
+		logToFile(fmt.Sprintf("Failed to open %s file: %v", final_apps_download_list, err))
 		return
 	}
 	defer file.Close()
@@ -214,6 +216,7 @@ func main() {
 				break // End of file
 			}
 			logToFile(fmt.Sprintf("Error reading line: %v", err))
+			markScriptFinished()
 			os.Exit(1)
 		}
 
@@ -296,7 +299,7 @@ func main() {
 		}
 	}
 
-	app_download_complete_time = time.Now().Format("2006-01-02 15:04:05")
+	app_download_complete_time = getCurrentTime()
 
 	tgzFiles, err := filepath.Glob(filepath.Join(outputPath, "*.tgz"))
 	if err != nil {
@@ -309,6 +312,7 @@ func main() {
 
 		// Check if the app is in the appsFromPhonehome map
 		if _, exists := apps_from_phonehome[tgzAppName]; !exists {
+			changes_made = true
 			logToFile(fmt.Sprintf("Removing unused .tgz file and directory for app: %s", tgzAppName))
 
 			// Remove the .tgz file
@@ -328,11 +332,11 @@ func main() {
 
 	if changes_made {
 
-		current_time := time.Now().Format("2006-01-02 15:04:05")
+		current_time := getCurrentTime()
 
 		installed_apps_string := strings.Join(installed_apps, ",")
 		failed_apps_string := strings.Join(failed_apps, ",")
-		script_end_time = time.Now().Format("2006-01-02 15:04:05")
+		script_end_time = getCurrentTime()
 		data := url.Values{}
 		data.Set("current_time", current_time)
 		data.Set("guid", GUID)
@@ -353,4 +357,5 @@ func main() {
 	} else {
 		logToFile("No changes made to apps. Skipping Splunk restart.")
 	}
+	markScriptFinished()
 }

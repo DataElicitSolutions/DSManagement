@@ -25,7 +25,7 @@ jobs:
         run: cd ds_addon_code && chmod +x binary.sh  && ./binary.sh
 
       - name: Create TAR of app
-        run: tar --exclude=".git*" --exclude="local*" --exclude=".DS_Store*" --exclude="*pyc*" --exclude="._*" -cvzf ds_management_app.tgz ds_management_app
+        run: tar --exclude=".git*" --exclude="local*" --exclude=".keep" --exclude=".DS_Store*" --exclude="*pyc*" --exclude="._*" -cvzf ds_management_app.tgz ds_management_app
 
       - name: Get Release Version
         run: |

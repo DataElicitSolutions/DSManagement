@@ -28,7 +28,7 @@ jobs:
         run: mkdir -p getdiag/data/getdiag_addon && cp -R getdiag_addon getdiag/data/
 
       - name: Create TAR of app
-        run: tar --exclude=".git*" --exclude="local*" --exclude=".DS_Store*" --exclude="*pyc*" --exclude="._*" -cvzf ds_management_app.tgz ds_management_app
+        run: tar --exclude=".git*" --exclude="local*" --exclude=".DS_Store*" --exclude=".keep" --exclude="*pyc*" --exclude="._*" -cvzf ds_management_app.tgz ds_management_app
 
       - name: "Upload the tgz package as artifact"
         uses: actions/upload-artifact@v4

@@ -63,6 +63,27 @@ To test the application on a few deployment clients:
 
 ---
 
+## ⚠️ Limitations / Unsupported Parameters
+
+While the DS Management App replicates most Deployment Server functionalities, certain parameters from `serverclass.conf` are **not supported** in this release.  
+
+**Cons – Unsupported Parameters:**  
+
+- `excludeFromUpdate = <comma-separated list>`  
+- `targetRepositoryLocation = <path>`  
+- `continueMatching = <boolean>`  
+- `endpoint = <URL template string>`  
+- `packageTypesFilter = <comma-separated list>`  
+- `updaterRunningFilter = <boolean>`  
+- `restartIfNeeded = <boolean>`  
+- `stateOnClient = <enabled | disabled | noop>`  
+- `precompressBundles = <boolean>`  
+- `sourceRepositoryLocation = <path>`  
+
+If your existing configuration relies on these parameters, please adjust accordingly before migration.  
+
+---
+
 ## 📄 License
 This project is licensed under the **AGPL License**.  
 For details, see the [GNU Affero General Public License](https://www.gnu.org/licenses/agpl-3.0.html).

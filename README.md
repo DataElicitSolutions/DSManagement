@@ -95,7 +95,7 @@ For details, see the [GNU Affero General Public License](https://www.gnu.org/lic
 - **Bhavik Bhalodia**
 
 ## 🔧 Maintainers
-- **Data Elicit Solutions Pvt. Ltd.**
+- **Data Elicit Solutions Pvt. Ltd. (www.dataelicit.com) **
 
 ---
 ## 📬 Support

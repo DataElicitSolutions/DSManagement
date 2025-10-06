@@ -105,7 +105,10 @@ require([
                 
                 // Special case for #appDropdown to handle apps JSON structure
                 if (dropdownId === "#appDropdown") {
-                    const appData = rows[0][1];
+                    var appData = rows[0][1];
+                     if (typeof appData === 'string' || appData instanceof String){
+                        appData = [appData]
+                    }
                     if (appData && appData.length > 0) {
                         appData.forEach(app => {
                             $dropdown.append(`<option value="${app}">${app}</option>`);

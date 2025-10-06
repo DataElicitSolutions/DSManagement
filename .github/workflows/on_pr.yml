@@ -24,9 +24,6 @@ jobs:
       - name: started creating binary
         run: cd ds_addon_code && chmod +x binary.sh  && ./binary.sh
 
-      - name: Copy Add-on to app
-        run: mkdir -p getdiag/data/getdiag_addon && cp -R getdiag_addon getdiag/data/
-
       - name: Create TAR of app
         run: tar --exclude=".git*" --exclude="local*" --exclude=".DS_Store*" --exclude=".keep" --exclude="*pyc*" --exclude="._*" -cvzf ds_management_app.tgz ds_management_app
 

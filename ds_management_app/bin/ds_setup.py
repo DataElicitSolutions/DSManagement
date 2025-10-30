@@ -5,6 +5,7 @@ from splunk.clilib.bundle_paths import make_splunkhome_path
 import splunk.appserver.mrsparkle.lib.util as splunk_lib_util
 from extract_csv_parms import make_path
 from setup import  push_script
+import splunklib.results as results
 
 dc_app_tgz_path = splunk_lib_util.make_splunkhome_path(['etc', 'apps', 'ds_management_app', 'data', 'setup_app'])
 store_setup_info_path= splunk_lib_util.make_splunkhome_path(['var', 'run', 'ds_management_app', 'checkpoint', 'setup_info.json'])
@@ -113,6 +114,21 @@ class SetupDS(GeneratingCommand):
                     log("INFO", "Created checkpoint for all files")
                     
                 log("INFO", "DS setup completed")
+                log("INFO", "Reloading Configurations")
+                service = self.service
+                if not service:
+                    raise ValueError("Could not find instantiated service object")
+                service.post("/services/deployment/server/config/_reload",body="serverclass=dc_app_clients")
+                kwargs_oneshot = {"earliest_time": "-1h","latest_time": "now","output_mode": "json", }
+                searchquery_oneshot = "| dsreload"
+
+                oneshotsearch_results = service.jobs.oneshot(searchquery_oneshot, **kwargs_oneshot)
+                if kwargs_oneshot.get("output_mode") == "json":
+                    reader = results.JSONResultsReader(oneshotsearch_results)
+                    for item in reader:
+                        log("INFO",str(item))
+                        if(item["status"]!="success"):
+                            return {"status": "WARN", "message" : "Error while reloading"} 
                 yield {"status": "success", "message" : "Setup Completed"}
                     
             else:
@@ -132,6 +148,7 @@ class SetupDS(GeneratingCommand):
             log("ERROR",traceback.format_exc())
             result = {"status": "error", "message": f"An error occurred: {str(e)}"}
             yield result
+
 
 
 dispatch(SetupDS, sys.argv, sys.stdin, sys.stdout, __name__)

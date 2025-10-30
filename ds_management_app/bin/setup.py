@@ -64,7 +64,7 @@ def copy_apps(override=False):
             if os.path.isdir(s):
                 # If it's a directory, copy the directory only if override is False and it doesn't already exist
                 if not os.path.exists(d) or override=="true":
-                    shutil.copytree(s, d)
+                    shutil.copytree(s, d,copy_function = shutil.copy)
                 else:
                     # If the directory exists, copy files individually
                     for sub_item in os.listdir(s):
@@ -72,12 +72,12 @@ def copy_apps(override=False):
                         sub_d = os.path.join(d, sub_item)
                         if os.path.isdir(sub_s):
                             if not os.path.exists(sub_d) or override=="true":
-                                shutil.copytree(sub_s, sub_d)
+                                shutil.copytree(sub_s, sub_d,copy_function = shutil.copy)
                         else:
-                            shutil.copy2(sub_s, sub_d)
+                            shutil.copy(sub_s, sub_d)
             else:
                 # Copy files
-                shutil.copy2(s, d)
+                shutil.copy(s, d)
         log("INFO","Deployment apps copied successfully.")
         with open(checkpoint_copy_ds_app, 'w') as fp:
             log("INFO","Checkpoint added for Deployment apps")

@@ -247,13 +247,13 @@ def is_folder_or_files_modified_after_last_reload(folder_path,reload_time):
 
     for root, dirs, files in os.walk(folder_path):
         # Check the folder itself
-        if reload_time - os.path.getmtime(root) < 0:
+        if reload_time - os.path.getmtime(root) < 0 or reload_time - os.path.getctime(root) < 0:
             return True
         
         # Check all files in the folder
         for file_name in files:
             file_path = os.path.join(root, file_name)
-            if reload_time - os.path.getmtime(file_path) < 0 :
+            if reload_time - os.path.getmtime(file_path) < 0 or reload_time - os.path.getctime(file_path) < 0 :
                 return True
     
     return False

@@ -559,6 +559,9 @@ require([
                     if (status === "success") {
                         $("#status_message").text(message)
                         // $("#summary_message").html(summary_output).css("color", "blue");
+                       populateDropdown( "#dropdown", "Select a Serverclass","");
+                       populateDropdown( "#appDropdown", "Select an App","");
+                       resetUI()
                     } else {
                         $("#status_message").text(message)
                         // $("#summary_message").html(summary_output).css("color", "blue");

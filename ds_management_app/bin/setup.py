@@ -64,7 +64,7 @@ def copy_apps(override=False):
             if os.path.isdir(s):
                 # If it's a directory, copy the directory only if override is False and it doesn't already exist
                 if not os.path.exists(d) or override=="true":
-                    shutil.copytree(s, d)
+                    shutil.copytree(s, d,copy_function = shutil.copy)
                 else:
                     # If the directory exists, copy files individually
                     for sub_item in os.listdir(s):
@@ -72,12 +72,12 @@ def copy_apps(override=False):
                         sub_d = os.path.join(d, sub_item)
                         if os.path.isdir(sub_s):
                             if not os.path.exists(sub_d) or override=="true":
-                                shutil.copytree(sub_s, sub_d)
+                                shutil.copytree(sub_s, sub_d,copy_function = shutil.copy)
                         else:
-                            shutil.copy2(sub_s, sub_d)
+                            shutil.copy(sub_s, sub_d)
             else:
                 # Copy files
-                shutil.copy2(s, d)
+                shutil.copy(s, d)
         log("INFO","Deployment apps copied successfully.")
         with open(checkpoint_copy_ds_app, 'w') as fp:
             log("INFO","Checkpoint added for Deployment apps")
@@ -247,13 +247,13 @@ def is_folder_or_files_modified_after_last_reload(folder_path,reload_time):
 
     for root, dirs, files in os.walk(folder_path):
         # Check the folder itself
-        if reload_time - os.path.getmtime(root) < 0:
+        if reload_time - os.path.getmtime(root) < 0 or reload_time - os.path.getctime(root) < 0:
             return True
         
         # Check all files in the folder
         for file_name in files:
             file_path = os.path.join(root, file_name)
-            if reload_time - os.path.getmtime(file_path) < 0 :
+            if reload_time - os.path.getmtime(file_path) < 0 or reload_time - os.path.getctime(file_path) < 0 :
                 return True
     
     return False
